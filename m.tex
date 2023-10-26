@@ -1,0 +1,85 @@
+% %
+% LAYOUT_E.TEX - Short description of REFMAN.CLS
+%                                       99-03-20
+%
+%  Updated for REFMAN.CLS (LaTeX2e)
+%
+\documentclass[twoside,a4paper]{refart}
+\usepackage{makeidx}
+\usepackage{ifthen}
+% ifthen wird vom Bild von N.Beebe gebraucht!
+
+\def\bs{\char'134 } % backslash in \tt font.
+\newcommand{\ie}{i.\,e.,}
+\newcommand{\eg}{e.\,g..}
+\DeclareRobustCommand\cs[1]{\texttt{\char`\\#1}}
+
+\renewcommand{\familydefault}{\sfdefault}
+
+\title{Completely Meaningful Binary Encoding}
+
+\emergencystretch1em  %
+
+\pagestyle{myfootings}
+\markboth{Completely Meaningful Binary Encoding}%
+         {Completely Meaningful Binary Encoding}
+
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{todonotes}
+\usepackage{caption}
+\usepackage{float}
+
+\usepackage[toc,page]{appendix}
+
+\usepackage{fancyvrb}
+
+\usepackage{tocbibind}
+
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist
+
+\usepackage[most]{tcolorbox}
+\definecolor{block-gray}{gray}{0.90}
+\newtcolorbox{myquote}{colback=block-gray,grow to right by=+0mm,grow to left by=-10mm, boxrule=0pt,boxsep=0pt,breakable}
+
+\makeatletter
+\newcommand{\customlabel}[2]{%
+\protected@write \@auxout {}{\string \newlabel {#1}{{#2}{}}}}
+\makeatother
+
+\makeindex 
+
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\maketitle
+
+\begin{flushright}
+\author{Kees-Jan Hermans (kees.jan.hermans@gmail.com)}
+\date{}
+\end{flushright}
+
+\input{abstract.tex}
+
+\vfill
+\begin{flushright}
+Version 0.8.4
+\textbf{Unclassified}
+
+\end{flushright}
+
+\newpage
+\tableofcontents
+
+\raggedbottom
+
+\newpage
+
+\input{contents.tex}
+
+\printindex
+
+\end{document}

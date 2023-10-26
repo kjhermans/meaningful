@@ -1,0 +1,193 @@
+\section{Premise}
+
+The premise of this treatise is that it must be possible to create
+a binary encoding format specification such that any random input 
+deterministically produces a valid output.
+The use of this specification must allow for complex data structures
+in the output (for example, as offered by ASN.1, XML or JSON),
+and even useful ones (in other words, this is not just a joke).
+
+\section{Problem Statement}
+
+Binary encodings are often chosen because they are (supposedly) dense.
+However, when applied, they often contain at least some 'air'.
+The problem with binary encodings is that this 'air' can also contain
+encoding mistakes. For example:
+
+\begin{itemize}
+\item When using TLV, they may contain types that aren't defined.
+\item When using TLV, they may contain lengths that are illegal.
+  Either because they are zero, which the type does not support,
+  or because they exceed the length of the message size, or indeed
+  the size of the element that contains them.
+\item For example, in DER encoding it is possible to defines lengths
+  that could not possibly exist in our universe.
+\item For example, in Unicode, there exist illegal encodings, when the
+  amount of bytes part of the definition of a character, aren't
+  available, or when the resultant character value isn't specified.
+\end{itemize}
+
+Textual formats can convey complex data structures, but are also
+(very) error prone. For example:
+
+\begin{itemize}
+\item String escaping may lead to illegal escape sequences or breaking
+  of string enclosing logic.
+\item Closing strings and brackets may be ommitted or over-supplied.
+\item Closing tags - same thing.
+\item Illegal bytes in 7-bits clean formats.
+\end{itemize}
+etc.
+
+All of these formats are problematic because we have to deal with
+errors during parsing.
+
+Funnily, some formats are binary yet don't suffer from these at all.
+Examples are raw audio, image and video encodings. So long as the
+encoder and decoder have previously agreed on resolution,
+any further bit in a video stream is simply the next bit used to
+create the current pixel, on the current scanline, in the current frame.
+
+Granted, in audio and video we can under- or overflow the input buffer of the
+decoder in time. And in images we can have an incomplete buffer.
+But what input we give it, cannot be 'illegal'. If we feed
+it random bits, the screen will show static, but it will be 'legal static'.
+
+\section{Design Principles}
+ 
+\begin{itemize}
+\item Length can never be used, as it may under- or overflow the message
+  or message segment size.
+\item Our atom will be a bit, not a byte, as we cannot have any 'air'
+  in our encoding. Implementations will be bit-shifting a lot, I think.
+\item Complexity of the output must be 'like ASN.1, XML or JSON'.
+  That is to say:
+  \begin{itemize}
+  \item Encodes all eight-bit bytes and all lengths of those bytes.
+  \item Is complex in that it provides at least for strings, integers,
+    floating points, 'hashtable' name-value lists, and arrays.
+  \end{itemize}
+\item We don't care about being truly efficient. The fact that we're
+  binarily encoding should bring us enough of that. The main goal stands:
+  any decoder input must produce an output.
+\item We don't care about deterministic reciprocity between encoding
+  and decoding: if the input to the decoder produces
+  a complex data structure, then the complex data structure, when fed
+  to the encoder, doesn't need to produce a copy of the input.
+  The fact that, for example, values in name/value lists are implicit,
+  makes this a necessity.
+\item There exists a 'null' type (in fact, there are two).
+  Which can be given explicitly, or
+  we use it to fill in all sorts of blanks.
+\item Everything is implicitly a list. When an implicit list contains
+  one element, it is a scalar. If you want to define a list with
+  one element, you must explicitly define a list.
+\item We use 'TV' encoding (leaving out the 'L'ength).
+  When we are looking for a type (because the previous tuple decoding
+  has finished) we simply assume that the following bits are part of the
+  new tuple in the implicit list that we're processing.
+\end{itemize}
+
+\section{Specification}
+
+Explicitly written from the standpoint of the decoder.
+The encoder will use this specifiction simply in reverse.
+
+\begin{itemize}
+\item There are the following types (eight, so that they fit exactly
+      into three bits):
+  \begin{itemize}
+  \item NULL
+  \item Explicit NULL
+  \item BOOLEAN
+  \item INTEGER (64 bits signed)
+  \item FLOAT (of system double size)
+  \item STRING
+  \item ARRAY
+  \item HASHTABLE
+  \end{itemize}
+
+\item The decoder starts assuming it has to fill a list.
+  If, in the end, this list will contain exactly one element, it will
+  return the element, not the list. In all other cases (empty list,
+  list with more than one element), it will return the list.
+
+\item The decoder pops a type triplet and switches according to its value:
+  \begin{itemize}
+  \item If it is a null, it will move to pop the next tuple.
+  \item If it is a boolean, it will pop the next bit to determine its value
+        and move on to the next tuple.
+  \item If it is an int or a float, it will pop the next 64 bits,
+        cast them to the machine representation, and move on to the next tuple.
+  \item If it is a string, it will go into a loop determining, per byte,
+        whether or not to read it. It does this by popping a bit and if
+        it is one, it will pop the byte. If it is zero, it assumes the
+        string is finished and move on to the next tuple.
+  \item If it is a list, it does the same 'continuity bit popping' for
+        each list element, and each element recurses into the list-tuple
+        decoding.
+  \item If it is a hashtable, it pops a string (without type triplet popping)
+        as key, and an element (as in the list), and does this in the same
+        'continuity bit popping' kind of way as with strings or list elements.
+  \end{itemize}
+
+\item Should an input end with one to seven zero bits, these should, per the
+  specification above, be rendered as a list of one or two NULL types
+  (one null D-bit and three null type-bits, which can repeat a maximum of
+  two times in seven bits), these will only not be discarded when they
+  are explicit NULL types.
+
+  Note that \textit{eight} null bits are explicit (in that they encode
+  an array of two null values).
+\end{itemize}
+
+\section{Examples}
+
+\textit{
+Binary data representations can be given in two formats, bit-wise and byte-wise.
+Bit-wise data is preceeded, per section, by a 'B:',
+while byte-wise data is preceeded, per section, by a 'H:' (and is denoted in
+hexadecimal tuplets).
+}
+
+The following input:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+B: 0 0 0 0 0 0 0 0
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Produces the following JSON:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+[ null, null ]
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+The following input:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+B: 0 1 0 1 1 0 1 0  1 0 0 0 0 0 0 0
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Produces the following JSON:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+"P"
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+
