@@ -16,4 +16,18 @@ But all in all, it should be enough to issue:
     perl ./decoder.pl /tmp/foo
 
 And watch the output.
+An example of input, encoded binary in hexdump, and output of the
+decoder:
+
+    {
+      "foo" : "bar",
+      "more" : "test",
+      "sub" : [
+        "a", "b", "c"
+      ]
+    }
+    00000000  fb 35 be de b6 2b 0d c9  b6 db ee 56 55 ba 59 6e  |.5...+.....VU.Yn|
+    00000010  77 46 e7 75 b1 36 d8 5b  62 6d 8c 00              |wF.u.6.[bm..|
+    0000001c
+    {"more":"test","sub":["a","b","c"],"foo":"bar"}
 
