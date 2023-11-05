@@ -10,7 +10,8 @@ and even useful ones (in other words, this is not just a joke).
 \section{Problem Statement}
 
 Binary encodings are often chosen because they are (supposedly) dense.
-However, when applied, they often contain at least some 'air'.
+However, when applied, they often contain at least some 'air'
+(superfluous or useless information).
 The problem with binary encodings is that this 'air' can also contain
 encoding mistakes. For example:
 
@@ -40,15 +41,24 @@ Textual formats can convey complex data structures, but are also
 etc.
 
 All of these formats are problematic because we have to deal with
-errors during parsing.
+errors during parsing. Errors in parsing are hardly ever meaningful,
+since we have no good way to recover from them (but they do introduce
+a lot of extra code). Error correcting codes can be provided with any input,
+this one being no exception.
 
-Funnily, some formats are binary yet don't suffer from these at all.
+Tail end recovery of both 'JSON'- or 'DER'-like encodings should be
+relatively easy (just wrap up the parsing effort and present the current
+state of the parser as the result to the caller), but this is not standard.
+With this encoding however, tail end recovery is implicit.
+
+Funnily, some binary formats don't suffer from these limitations.
 Examples are raw audio, image and video encodings. So long as the
 encoder and decoder have previously agreed on resolution,
 any further bit in a video stream is simply the next bit used to
 create the current pixel, on the current scanline, in the current frame.
 
-Granted, in audio and video we can under- or overflow the input buffer of the
+Granted, such formats have become rare in this day and age,
+and in audio and video we can under- or overflow the input buffer of the
 decoder in time. And in images we can have an incomplete buffer.
 But what input we give it, cannot be 'illegal'. If we feed
 it random bits, the screen will show static, but it will be 'legal static'.
@@ -217,6 +227,8 @@ Currently, integers are encoded as eight byte integers. This:
 
 \section{Examples}
 
+... section to be written
+
 \textit{
 Binary data representations can be given in two formats, bit-wise and byte-wise.
 Bit-wise data is preceeded, per section, by a 'B:',
@@ -224,13 +236,14 @@ while byte-wise data is preceeded, per section, by a 'H:' (and is denoted in
 hexadecimal tuplets).
 }
 
-The section below needs to be rewritten. Ignore.
-
 The following input:
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
+
+B: 0 0 0 0  0 0 0 0
+
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
@@ -240,15 +253,25 @@ Produces the following JSON:
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
+
+[ ]
+
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
+
+Three implicit nulls are read from the input, which are all discarded.
+Since the implicit top-list now contains zero elements, it is presented
+as the result of the decoding.
 
 The following input:
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
+
+B: 0 0 1 0  0 0 0 0
+
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
@@ -258,8 +281,43 @@ Produces the following JSON:
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
+
+null
+
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
 
+An explicit null is read, followed by the read of two implicit nulls.
+The implicit nulls are discarded (because they are in the tail).
+Since the implicit top-list only contains one element, it is presented
+as a single null, not encapsulated in an array.
 
+The following input:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+B: 0 0 1 0  0 1 0 0
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Produces the following JSON:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+[ null, null ]
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Here, two explicit (un-erasable) nulls are encoded in the implicit
+top-list, followed by two zero bits. The decoder reads these bits
+(and one more, which will also be virtually zero), and interprets that
+as an implicit null. The implicit null is then discarded.
