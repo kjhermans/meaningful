@@ -56,10 +56,10 @@ it random bits, the screen will show static, but it will be 'legal static'.
 \section{Design Principles}
  
 \begin{itemize}
-\item Length can never be used, as it may under- or overflow the message
-  or message segment size.
+\item Length can never be used in the way that it may be used to 
+  under- or overflow the message or message segment size.
 \item Our atom will be a bit, not a byte, as we cannot have any 'air'
-  in our encoding. Implementations will be bit-shifting a lot, I think.
+  in our encoding.
 \item Complexity of the output must be 'like ASN.1, XML or JSON'.
   That is to say:
   \begin{itemize}
@@ -74,18 +74,18 @@ it random bits, the screen will show static, but it will be 'legal static'.
   and decoding: if the input to the decoder produces
   a complex data structure, then the complex data structure, when fed
   to the encoder, doesn't need to produce a copy of the input.
-  The fact that, for example, values in name/value lists are implicit,
-  makes this a necessity.
 \item There exists a 'null' type (in fact, there are two).
   Which can be given explicitly, or
   we use it to fill in all sorts of blanks.
-\item Everything is implicitly a list. When an implicit list contains
+\item On top, everything is implicitly inside a list.
+  When the implicit list contains
   one element, it is a scalar. If you want to define a list with
   one element, you must explicitly define a list.
-\item We use 'TV' encoding (leaving out the 'L'ength).
-  When we are looking for a type (because the previous tuple decoding
-  has finished) we simply assume that the following bits are part of the
-  new tuple in the implicit list that we're processing.
+\item At the end of input, however many zero bits as are required can be read.
+  Since all reads are implicitly length delimited ('next byte' in string 
+  reading never pops more than nine bits, integers pop 64 bits, etc),
+  this is a one-time affair only. All loops (strings, hashtables, arrays)
+  take the end of input as to mean: jump out of the loop and return.
 \end{itemize}
 
 \section{Specification}
@@ -146,17 +146,47 @@ The encoder will use this specifiction simply in reverse.
 \subsection{Bigger type space encoding}
 
 Currently, the amount of types has been limited to eight. This happened
-to satisfy the requirements of encoding JSON however, it may be that you're
+to satisfy the requirements of encoding JSON. However, it may be that you're
 having a more extensive need for type encoding. In that case one could
 extend the type identifyer sequence with one bit, giving you sixteen
-possible types.
+possible types. Add one more bit and you'll have 32, etc.
 
 If then, however, you're not in need of all sixteen (or 32, or 64, or ...)
-types, you'll be forced to apply a modular approach. Your type then
+types, you'll be forced to apply a modular arithmetic approach. Your type then
 becomes the modulo of type space available, divided by the amount of
 types needed. This will also make the encoder/decoder stages less
 deterministically linked (since you can have, in some cases, more than
 one discriminant for a type).
+
+Alternatively, it may make sense to appreciate types as binary trees.
+This will take more processing, but it may also yield a more
+specific encoding, that won't necessarily require modular arithmetic.
+For example:
+\newpage
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+                           /- 0 null
+                 /- 0 null
+                /          \- 1 null
+     /- 0 scalar
+     |          \              /- 0 fixedlength     - 00 bool (1)
+     |           |             |                    - 01 int32 (32)
+     |           |             |                    - 10 int64 (64)
+     |           |             /                    - 11 float (64)
+     |           \- 1 non-null
+     |                         \- 1 arbitrarylength - 0 bigint
+     |                                                1 string
+     /
+type               /- 0 array
+     \- 1 compound
+                   \- 1 hashtable
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Giving you ten possible types.
 
 \subsection{String Encoding}
 
