@@ -141,6 +141,50 @@ The encoder will use this specifiction simply in reverse.
   an array of two null values).
 \end{itemize}
 
+\section{Thoughts on Specific Forms of Sub-Encoding}
+
+\subsection{Bigger type space encoding}
+
+Currently, the amount of types has been limited to eight. This happened
+to satisfy the requirements of encoding JSON however, it may be that you're
+having a more extensive need for type encoding. In that case one could
+extend the type identifyer sequence with one bit, giving you sixteen
+possible types.
+
+If then, however, you're not in need of all sixteen (or 32, or 64, or ...)
+types, you'll be forced to apply a modular approach. Your type then
+becomes the modulo of type space available, divided by the amount of
+types needed. This will also make the encoder/decoder stages less
+deterministically linked (since you can have, in some cases, more than
+one discriminant for a type).
+
+\subsection{String Encoding}
+
+Currently, the implementation pulls a single bit to see if it would need
+to read another single byte. This creates a string encoding overhead of
+12.5\%, which may be seen as extensive.
+
+It is relatively easy however, to create a string encoding scheme that
+is more frugal. For example: pull three bits to determine how many of the
+following 0-7 bytes should be read. Overhead then quickly drops to low
+single digit percentages (1.9\% in this case).
+
+\subsection{Integer Encoding}
+
+Currently, integers are encoded as eight byte integers. This:
+
+\begin{itemize}
+\item May not sit well with 32 bit platforms.
+\item May not satisfy those who require bigints (for example, for use in
+      cryptographic applications).
+\end{itemize}
+
+... section to be written
+
+\subsection{Floating Point Number Encoding}
+
+... section to be written
+
 \section{Examples}
 
 \textit{
@@ -150,12 +194,13 @@ while byte-wise data is preceeded, per section, by a 'H:' (and is denoted in
 hexadecimal tuplets).
 }
 
+The section below needs to be rewritten. Ignore.
+
 The following input:
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
-B: 0 0 0 0 0 0 0 0
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
@@ -165,7 +210,6 @@ Produces the following JSON:
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
-[ null, null ]
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
@@ -175,7 +219,6 @@ The following input:
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
-B: 0 1 0 1 1 0 1 0  1 0 0 0 0 0 0 0
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
@@ -185,7 +228,6 @@ Produces the following JSON:
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
-"P"
 \end{verbatim}
 \end{myquote}
 \end{changemargin}
