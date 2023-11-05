@@ -2,10 +2,24 @@
 
 The premise of this treatise is that it must be possible to create
 a binary encoding format specification such that any random input 
-deterministically produces a valid output.
+deterministically and without an error, produces a valid output.
 The use of this specification must allow for complex data structures
 in the output (for example, as offered by ASN.1, XML or JSON),
 and even useful ones (in other words, this is not just a joke).
+
+In other words, the following must always work:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+$ cat /dev/random | head -c 64 > /tmp/foo
+$ perl ./decoder.pl /tmp/foo
+$ #... some convoluted JSON structure on stdout...
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
 
 \section{Problem Statement}
 
@@ -172,21 +186,21 @@ Alternatively, it may make sense to appreciate types as binary trees.
 This will take more processing, but it may also yield a more
 specific encoding, that won't necessarily require modular arithmetic.
 For example:
-\newpage
+
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
-                           /- 0 null
-                 /- 0 null
-                /          \- 1 null
-     /- 0 scalar
-     |          \              /- 0 fixedlength     - 00 bool (1)
-     |           |             |                    - 01 int32 (32)
-     |           |             |                    - 10 int64 (64)
-     |           |             /                    - 11 float (64)
-     |           \- 1 non-null
-     |                         \- 1 arbitrarylength - 0 bigint
-     |                                                1 string
+                                 /- 0 null
+                   /- 0 null ----
+                  /              \- 1 null
+     /- 0 scalar -
+     |            \              /- 0 fixedlength --- - 00 bool (1)
+     |             |             |                    - 01 int32 (32)
+     |             |             |                    - 10 int64 (64)
+     |             |             /                    - 11 float (64)
+     |             \- 1 non-null
+     |                           \- 1 arbitrarylength - 0 bigint
+     |                                                - 1 string
      /
 type               /- 0 array
      \- 1 compound
@@ -372,7 +386,7 @@ The following input:
 \begin{myquote}
 \begin{verbatim}
 
-B: 1 1 0 1 0 0 1 1  0 0 1 0 0 0 0 0
+B: 1 1 0 1  0 0 1 1    0 0 1 0  0 0 0 0
 
 \end{verbatim}
 \end{myquote}

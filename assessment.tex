@@ -24,6 +24,11 @@
       string encoding carries a penalty of 12.5\% overhead in the limit.
 \item Encoding and decoding may not be deterministically linked: the same
       chaos may not be returned when passed through the decoder and encoder
-      subsequently (the reverse order however, does deterministically link
-      the encoder and the decoder).
+      subsequently (the reverse order however, from JSON to binary to JSON,
+      does deterministically link the encoder and the decoder - provided
+      JSON hashtable keys are sorted).
+\item Although correction of inputs - when not using error correcting codes -
+      is neigh on impossible in all popular formats, they can usually
+      provide some feedback. With this format, feedback to the user
+      ('this is where your input went wrong') is impossible.
 \end{itemize}
