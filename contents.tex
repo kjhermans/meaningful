@@ -197,7 +197,8 @@ type               /- 0 array
 \end{changemargin}
 
 Giving you ten possible types. Note that any extension of the scheme
-above is possible.
+above is possible. Also note that this system also has drawbacks:
+six bits to encode a boolean, for example.
 
 \subsection{String Encoding}
 
@@ -238,6 +239,8 @@ while byte-wise data is preceeded, per section, by a 'H:' (and is denoted in
 hexadecimal tuplets).
 }
 
+\subsection{Example 001}
+
 The following input:
 
 \begin{changemargin}{-60mm}{0mm}
@@ -265,6 +268,8 @@ Produces the following JSON:
 Three implicit nulls are read from the input, which are all discarded.
 Since the implicit top-list now contains zero elements, it is presented
 as the result of the decoding.
+
+\subsection{Example 002}
 
 The following input:
 
@@ -295,6 +300,8 @@ The implicit nulls are discarded (because they are in the tail).
 Since the implicit top-list only contains one element, it is presented
 as a single null, not encapsulated in an array.
 
+\subsection{Example 003}
+
 The following input:
 
 \begin{changemargin}{-60mm}{0mm}
@@ -323,6 +330,8 @@ Here, two explicit (un-erasable) nulls are encoded in the implicit
 top-list, followed by two zero bits. The decoder reads these bits
 (and one more, which will also be virtually zero), and interprets that
 as an implicit null. The implicit null is then discarded.
+
+\subsection{Example 004}
 
 The following input:
 
@@ -354,3 +363,44 @@ contains at least one more element. The subsequent zeroes denote the filling.
 
 Note that the encoding could have also used an explicit null here
 (making for 1 1 0 1  0 0 1 0).
+
+\subsection{Example 005}
+
+The following input:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+B: 1 1 0 1 0 0 1 1  0 0 1 0 0 0 0 0
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Read from left to right:
+\begin{itemize}
+\item 'I have a list' (3 bits).
+\item 'The list has one more element' (1 bit).
+\item 'I have an explicit null' (3 bits).
+\item 'The list has one more element' (1 bit).
+\item 'I have an explicit null' (3 bits).
+\item 'The list has no more elements' (1 bit).
+\item .. followed by zero bits which may be interpreted as implicit
+      nulls, but which will be discarded.
+\end{itemize}
+
+Produces the following JSON:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+[ null, null ]
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Note that this is the exact same output as given in example 3, but now
+made explicit.
