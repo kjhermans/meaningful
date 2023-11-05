@@ -142,13 +142,13 @@ The encoder will use this specifiction simply in reverse.
   \end{itemize}
 
 \item Should an input end with one to seven zero bits, these should, per the
-  specification above, be rendered as a list of one or two NULL types
+  specification above, be rendered as a list of one or more implicit NULL types
   (one null D-bit and three null type-bits, which can repeat a maximum of
   two times in seven bits), these will only not be discarded when they
   are explicit NULL types.
 
-  Note that \textit{eight} null bits are explicit (in that they encode
-  an array of two null values).
+  Note that implicit zeroes, enclosed in other relevant tuples, \textit{are}
+  absorbed as regular nulls.
 \end{itemize}
 
 \section{Thoughts on Specific Forms of Sub-Encoding}
@@ -196,7 +196,8 @@ type               /- 0 array
 \end{myquote}
 \end{changemargin}
 
-Giving you ten possible types.
+Giving you ten possible types. Note that any extension of the scheme
+above is possible.
 
 \subsection{String Encoding}
 
@@ -206,7 +207,9 @@ to read another single byte. This creates a string encoding overhead of
 
 It is relatively easy however, to create a string encoding scheme that
 is more frugal. For example: pull three bits to determine how many of the
-following 0-7 bytes should be read. Overhead then quickly drops to low
+following 0-7 bytes should be read. This does not exceed the amount of
+bytes required by the decoder to keep in a buffer (which is maximized at
+sizeof(double)). Overhead then quickly drops to low
 single digit percentages (1.9\% in this case).
 
 \subsection{Integer Encoding}
@@ -219,15 +222,14 @@ Currently, integers are encoded as eight byte integers. This:
       cryptographic applications).
 \end{itemize}
 
-... section to be written
+To address these points, refer to the section on bigger type space
+encoding.
 
 \subsection{Floating Point Number Encoding}
 
 ... section to be written
 
 \section{Examples}
-
-... section to be written
 
 \textit{
 Binary data representations can be given in two formats, bit-wise and byte-wise.
