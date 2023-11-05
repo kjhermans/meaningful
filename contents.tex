@@ -323,3 +323,34 @@ Here, two explicit (un-erasable) nulls are encoded in the implicit
 top-list, followed by two zero bits. The decoder reads these bits
 (and one more, which will also be virtually zero), and interprets that
 as an implicit null. The implicit null is then discarded.
+
+The following input:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+B: 1 1 0 1  0 0 0 0
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Produces the following JSON:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+[ null ]
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+In this example, the type number six (1 1 0) denotes an explicit array.
+It is followed by a one-byte, which denotes the fact that the array
+contains at least one more element. The subsequent zeroes denote the filling.
+
+Note that the encoding could have also used an explicit null here
+(making for 1 1 0 1  0 0 1 0).
