@@ -418,3 +418,45 @@ Produces the following JSON:
 
 Note that this is the exact same output as given in example 3, but now
 made explicit.
+
+\subsection{Example 006}
+
+The following JSON input:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+[
+  "foo", "bar", { "foo" : "bar" }, [], [ [ ] ]
+]
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+When encoded, leads to the following binary:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+00000000  db 66 b7 db db 62 b0 dc  9f b3 5b ed eb 62 b0 dc  |.f...b....[..b..|
+00000010  8e 77 00                                          |.w.|
+00000013
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
+
+Which, in turn, when fed to the decoder, leads to this JSON:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+\begin{verbatim}
+
+["foo","bar",{"foo":"bar"},[],[[]]]
+
+\end{verbatim}
+\end{myquote}
+\end{changemargin}
