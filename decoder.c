@@ -68,11 +68,7 @@ void render_int64
   unsigned char* _n = (unsigned char*)&n;
 
   for (unsigned i=0; i < sizeof(uint64_t); i++) {
-#ifdef _BIGENDIAN_
-    _n[ sizeof(uint64_t)-i-1 ] = read_bits(8);
-#else
     _n[ i ] = read_bits(8);
-#endif
   }
   printf("%" PRId64, n);
 }
@@ -85,7 +81,7 @@ void render_float
   unsigned char* _d = (unsigned char*)&d;
 
   for (unsigned i=0; i < sizeof(double); i++) {
-    _d[ sizeof(double)-i-1 ] = read_bits(8);
+    _d[ i ] = read_bits(8);
   }
   printf("%f", d);
 }
