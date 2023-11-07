@@ -224,8 +224,35 @@ It is relatively easy however, to create a string encoding scheme that
 is more frugal. For example: pull three bits to determine how many of the
 following 0-7 bytes should be read. This does not exceed the amount of
 bytes required by the decoder to keep in a buffer (which is maximized at
-sizeof(double)). Overhead then quickly drops to low
-single digit percentages (1.9\% in this case).
+sizeof(double)). Overhead then drops to lower percentages
+(in this case 3 bits out of 56 in the limit, or 5.4\%).
+
+\subsubsection{Unicode}
+
+Because Unicode (well, its UTF-8 encoding, which is the most popular, since
+it retains backwards compatibility with ASCII) has invalid sequences
+(for example, a 110xxxxx initial byte \textit{not} followed by a
+10xxxxxx byte), it cannot be used as-is against the decoder (which is error
+free). This provides two options:
+
+\begin{itemize}
+\item Not support any such encodings, which means that JSON and XML
+      \textbf{must} assume that strings are composed of bytes-as-characters.
+\item Create a special type in the encoding, a 'wide-character string' type,
+      that re-encodes wide characters in a way that cannot have
+      potential interpretation errors.
+\end{itemize}
+
+The second option is probably the most desirable. However, it requires:
+
+\begin{itemize}
+\item An extension of the type system with one extra type
+      ('wide character string'), or the assumption that all strings are
+      wide character encoded (which may be costly in terms of overhead).
+\item A scheme that can encode wide characters without errors.
+\item An obligation on genuine encoders, to use said encoding when
+      encountering character values > 255.
+\end{itemize}
 
 \subsection{Integer Encoding}
 
@@ -242,7 +269,9 @@ encoding.
 
 \subsection{Floating Point Number Encoding}
 
-... section to be written
+Floating point values are usually encoded as follows: sign, mantissa, exponent.
+
+-still to be written-
 
 \section{Examples}
 
