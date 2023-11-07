@@ -91,15 +91,12 @@ void render_escaped
   (uint8_t b)
 {
   switch (b) {
-  case '\a': printf("\\a"); break;
-  case '\b': printf("\\b"); break;
   case '\t': printf("\\t"); break;
   case '\n': printf("\\n"); break;
-  case '\v': printf("\\v"); break;
-  case '\f': printf("\\f"); break;
   case '\r': printf("\\r"); break;
+  case 0: printf("\\0"); break;
   default:
-    printf("\\0%o", b);
+    printf("\\u00%.2x", b);
   }
 }
 
@@ -113,6 +110,9 @@ void render_string
     if (cont) {
       uint8_t byte = read_bits(8);
       if (byte >= 32 && byte < 127) {
+        if (byte == '\\' || byte == '"') {
+          printf("\\");
+        }
         printf("%c", byte);
       } else {
         render_escaped(byte);
