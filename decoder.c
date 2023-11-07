@@ -7,6 +7,7 @@ static unsigned pop_null = 0;
 static unsigned toplist_ntuples = 0;
 static uint8_t current_byte = 0;
 static unsigned current_bit = 7;
+static uint8_t last_type = 0;
 
 #define TYPE_NULL         0
 #define TYPE_EXPLICITNULL 1
@@ -67,7 +68,11 @@ void render_int64
   unsigned char* _n = (unsigned char*)&n;
 
   for (unsigned i=0; i < sizeof(uint64_t); i++) {
-    _n[ sizeof(uint8_t)-i-1 ] = read_bits(8);
+#ifdef _BIGENDIAN_
+    _n[ sizeof(uint64_t)-i-1 ] = read_bits(8);
+#else
+    _n[ i ] = read_bits(8);
+#endif
   }
   printf("%" PRId64, n);
 }
@@ -173,8 +178,8 @@ static
 void render_tuple
   ()
 {
-  uint8_t type = read_bits(3);
-  switch (type) {
+  last_type = read_bits(3);
+  switch (last_type) {
   case TYPE_NULL:
   case TYPE_EXPLICITNULL: printf("null"); break;
   case TYPE_BOOLEAN: render_boolean(); break;
@@ -199,6 +204,11 @@ int main
   while (1) {
     render_tuple();
     ++toplist_ntuples;
+    if (last_type == TYPE_NULL) {
+      pop_null++;
+    } else {
+      pop_null = 0;
+    }
     if (!finished) {
       printf(",");
     } else {
@@ -210,7 +220,7 @@ int main
   while (pop_null--) {
     printf("pop result;\n");
   }
-  if (toplist_ntuples != 1) {
+  if (toplist_ntuples == 1) {
     printf("result = result[ 0 ];\n");
   }
   return 0;
