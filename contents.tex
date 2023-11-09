@@ -165,6 +165,75 @@ The encoder will use this specifiction simply in reverse.
   absorbed as regular nulls.
 \end{itemize}
 
+In pseudo code:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
+\textit{fn} \textbf{read\_any}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{type} \textit{:=} \textbf{read\_bits(3)} \newline
+\indent\hspace{.5cm} \textit{if} \textbf{type} = NULL: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(NULL)} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = EXPLICITNULL: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(NULL)} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = BOOLEAN: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(read\_boolean())} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = INTEGER: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(read\_integer())} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = FLOAT: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(read\_float())} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = STRING: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(read\_string())} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = ARRAY: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(read\_array())} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = HASHTABLE: \newline
+\indent\hspace{1cm} \textbf{push\_tuple(read\_hashtable())} \newline
+
+\textit{fn} \textbf{read\_boolean}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{value} \textit{:=} \textbf{read\_bits(1)} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{value} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+Strings use continuity bits. Every subsequent byte is read only when a
+single continuity bit is set to true. In pseudo code:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
+\textit{fn} \textbf{read\_string}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{string} \textit{:=} "" \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
+\indent\hspace{1cm} \textbf{string} \textit{+=} \textbf{chr(read\_bits(8))} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{string} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+Continuity bits are also used in arrays and hashtables. A single bit (which
+is always returned) determines whether or not the next element is read. Like so:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
+\textit{fn} \textbf{read\_hashtable}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{hashtable} \textit{:=} \textbf{\{\}} \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
+\indent\hspace{1cm} \textit{var} \textbf{key} \textit{:=} \textbf{read\_string()} \newline
+\indent\hspace{1cm} \textit{var} \textbf{value} \textit{:=} \textbf{read\_any()} \newline
+\indent\hspace{1cm} \textbf{hashtable\{key\}} \textit{:=} \textbf{value} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{hashtable} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
 \section{Thoughts on Specific Forms of Sub-Encoding}
 
 \subsection{Bigger type space encoding}
@@ -222,24 +291,6 @@ Currently, the implementation pulls a single bit to see if it would need
 to read another single byte. This creates a string encoding overhead of
 12.5\%, which may be seen as extensive.
 
-In pseudo code:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-
-\vbox{
-\textit{fn} \textbf{read\_string}: \newline
-\indent\hspace{.5cm} \textit{while !} \textbf{finished}: \newline
-\indent\hspace{1cm} \textit{var} \textbf{cont} \textit{:=} \textbf{read\_bits(1)} \newline
-\indent\hspace{1cm} \textit{if} \textbf{cont}: \newline
-\indent\hspace{1.5cm} \textbf{push\_char(read\_bits(8))} \newline
-\indent\hspace{1cm} \textit{else}: \newline
-\indent\hspace{1.5cm} \textit{return} \newline
-}
-
-\end{myquote}
-\end{changemargin}
-
 It is relatively easy however, to create a string encoding scheme that
 is more frugal. For example: pull three bits to determine how many of the
 following 0-7 bytes should be read. This does not exceed the amount of
@@ -254,12 +305,14 @@ In pseudo code:
 
 \vbox{
 \textit{fn} \textbf{read\_string}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{string} \textit{:=} "" \newline
 \indent\hspace{.5cm} \textit{while !} \textbf{finished}: \newline
 \indent\hspace{1cm} \textit{var} \textbf{sectionlength} \textit{:=} \textbf{read\_bits(3)} \newline
 \indent\hspace{1cm} \textit{if !} \textbf{sectionlength}: \newline
-\indent\hspace{1.5cm} \textit{return} \newline
+\indent\hspace{1.5cm} \textit{return} \textbf{string} \newline
 \indent\hspace{1cm} \textit{for} \textbf{i} \textit{in} 1..\textbf{sectionlength}: \newline
-\indent\hspace{1.5cm} \textbf{push\_char(read\_bits(8))} \newline
+\indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{chr(read\_bits(8))} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{string} \newline
 }
 
 \end{myquote}
@@ -316,16 +369,14 @@ In pseudo code:
 
 \vbox{
 \textit{fn} \textbf{read\_string}: \newline
-\indent\hspace{.5cm} \textit{while !} \textbf{finished}: \newline
-\indent\hspace{1cm} \textit{var} \textbf{cont} \textit{:=} \textbf{read\_bits(1)} \newline
-\indent\hspace{1cm} \textit{if} \textbf{cont}: \newline
-\indent\hspace{1.5cm} \textit{var} \textbf{unicode} \textit{:=} \textbf{read\_bits(1)} \newline
-\indent\hspace{1.5cm} \textit{if} \textbf{unicode}: \newline
-\indent\hspace{2cm} \textbf{push\_char(read\_bits(20))} \newline
-\indent\hspace{1.5cm} \textit{else}: \newline
-\indent\hspace{2cm} \textbf{push\_char(read\_bits(7))} \newline
+\indent\hspace{.5cm} \textit{var} \textbf{string} \textit{:=} "" \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
+\indent\hspace{1cm} \textit{var} \textbf{unicode} \textit{:=} \textbf{read\_bits(1)} \newline
+\indent\hspace{1cm} \textit{if} \textbf{unicode}: \newline
+\indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{w\_chr(read\_bits(20))} \newline
 \indent\hspace{1cm} \textit{else}: \newline
-\indent\hspace{1.5cm} \textit{return} \newline
+\indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{chr(read\_bits(7))} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{string} \newline
 }
 
 \end{myquote}
