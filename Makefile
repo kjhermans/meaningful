@@ -16,4 +16,4 @@ clean:
 archive: clean
 	RELEASE=$$(cat version); \
 	/bin/echo "  [TAR] ~/meaningful-$$RELEASE.tar.gz"; \
-	cd .. && tar czf ~/meaningful-src-$$RELEASE.tar.gz meaningful/
+	cd .. && tar czf ~/meaningful-src-$$RELEASE.tar.gz --exclude=\.git meaningful/
