@@ -165,7 +165,12 @@ The encoder will use this specifiction simply in reverse.
   absorbed as regular nulls.
 \end{itemize}
 
-In pseudo code:
+\subsection{Pseudo Code}
+
+In pseudo code (the 'read\_bits' function consumes the given amount of bits
+from the input, and returns this as a numeric value. It also sets the
+'finished' variable flag to true when the end of input is encountered),
+the main tuple consuming function is implemented as follows:
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
@@ -174,21 +179,32 @@ In pseudo code:
 \textit{fn} \textbf{read\_any}: \newline
 \indent\hspace{.5cm} \textit{var} \textbf{type} \textit{:=} \textbf{read\_bits(3)} \newline
 \indent\hspace{.5cm} \textit{if} \textbf{type} = NULL: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(NULL)} \newline
+\indent\hspace{1cm} \textit{return null} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = EXPLICITNULL: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(NULL)} \newline
+\indent\hspace{1cm} \textit{return null} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = BOOLEAN: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(read\_boolean())} \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_boolean()} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = INTEGER: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(read\_integer())} \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_integer()} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = FLOAT: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(read\_float())} \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_float()} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = STRING: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(read\_string())} \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_string()} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = ARRAY: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(read\_array())} \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_array()} \newline
 \indent\hspace{.5cm} \textit{else if} \textbf{type} = HASHTABLE: \newline
-\indent\hspace{1cm} \textbf{push\_tuple(read\_hashtable())} \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_hashtable()} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+Consuming a boolean then simply becomes reading a single bit. Like so:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
 
 \textit{fn} \textbf{read\_boolean}: \newline
 \indent\hspace{.5cm} \textit{var} \textbf{value} \textit{:=} \textbf{read\_bits(1)} \newline
@@ -215,8 +231,9 @@ single continuity bit is set to true. In pseudo code:
 \end{myquote}
 \end{changemargin}
 
-Continuity bits are also used in arrays and hashtables. A single bit (which
-is always returned) determines whether or not the next element is read. Like so:
+Continuity bits are also used in the consumption of elements of arrays
+and hashtables. A single bit (which is always returned) determines whether
+or not the next element is read. Like so:
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
@@ -381,6 +398,9 @@ In pseudo code:
 
 \end{myquote}
 \end{changemargin}
+
+This will implement (most of) Unicode, yet be as frugal with
+overhead as ASCII.
 
 \subsection{Integer Encoding}
 
