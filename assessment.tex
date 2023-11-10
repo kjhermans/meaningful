@@ -32,9 +32,11 @@
       provide some feedback. With this format, feedback to the user
       ('this is where your input went wrong') is impossible.
 \item (When decoding random inputs:) null bytes in strings are possible,
-      Unicode won't be produced
-      (because there exist invalid Unicode sequences), and duplicate
+      and duplicate
       keys in key/value structures are a possibility (although JSON
       leaves this behaviour undefined).
-\item Conversely, Unicode support won't be possible in the encoder.
+\item Unicode support is possible, but has to be expressly applied to
+      both the encoder and decoder. Alternatively, in order to be
+      correct against the JSON spec, it's probably better to consider
+      all bytes 7-bits instead of eight in the decoder.
 \end{itemize}

@@ -50,7 +50,7 @@ Textual formats can convey complex data structures, but are also
   of string enclosing logic.
 \item Closing strings and brackets may be ommitted or over-supplied.
 \item Closing tags - same thing.
-\item Illegal bytes in 7-bits clean formats.
+\item 8-bit relevant bytes in 7-bits clean messages encoded as 8-bit formats.
 \end{itemize}
 etc.
 
@@ -178,22 +178,20 @@ the main tuple consuming function is implemented as follows:
 \vbox{
 \textit{fn} \textbf{read\_any}: \newline
 \indent\hspace{.5cm} \textit{var} \textbf{type} \textit{:=} \textbf{read\_bits(3)} \newline
-\indent\hspace{.5cm} \textit{if} \textbf{type} = NULL: \newline
-\indent\hspace{1cm} \textit{return null} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = EXPLICITNULL: \newline
-\indent\hspace{1cm} \textit{return null} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = BOOLEAN: \newline
+\indent\hspace{.5cm} \textit{if} \textbf{type} = BOOLEAN(2): \newline
 \indent\hspace{1cm} \textit{return} \textbf{read\_boolean()} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = INTEGER: \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = INTEGER(3): \newline
 \indent\hspace{1cm} \textit{return} \textbf{read\_integer()} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = FLOAT: \newline
-\indent\hspace{1cm} \textit{return} \textbf{read\_float()} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = STRING: \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = FLOAT(4): \newline
+\indent\hspace{1cm} \textit{return} \textbf{read\_float))} \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = STRING(5): \newline
 \indent\hspace{1cm} \textit{return} \textbf{read\_string()} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = ARRAY: \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = ARRAY(6): \newline
 \indent\hspace{1cm} \textit{return} \textbf{read\_array()} \newline
-\indent\hspace{.5cm} \textit{else if} \textbf{type} = HASHTABLE: \newline
+\indent\hspace{.5cm} \textit{else if} \textbf{type} = HASHTABLE(7): \newline
 \indent\hspace{1cm} \textit{return} \textbf{read\_hashtable()} \newline
+\indent\hspace{.5cm} \textit{else}: \newline
+\indent\hspace{1cm} \textit{return null} \newline
 }
 
 \end{myquote}
