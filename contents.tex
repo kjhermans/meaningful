@@ -170,7 +170,8 @@ The encoder will use this specifiction simply in reverse.
 In pseudo code (the 'read\_bits' function consumes the given amount of bits
 from the input, and returns this as a numeric value. It also sets the
 'finished' variable flag to true when the end of input is encountered),
-the main tuple consuming function is implemented as follows:
+the main tuple consuming function is implemented as follows
+(default result is null, which stems from the type values of zero and one):
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
@@ -238,11 +239,18 @@ or not the next element is read. Like so:
 
 \vbox{
 \textit{fn} \textbf{read\_hashtable}: \newline
-\indent\hspace{.5cm} \textit{var} \textbf{hashtable} \textit{:=} \textbf{\{\}} \newline
+\indent\hspace{.5cm} \textit{var} \textbf{hashtable} \textit{:=} \{\} \newline
 \indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
 \indent\hspace{1cm} \textit{var} \textbf{key} \textit{:=} \textbf{read\_string()} \newline
 \indent\hspace{1cm} \textit{var} \textbf{value} \textit{:=} \textbf{read\_any()} \newline
 \indent\hspace{1cm} \textbf{hashtable\{key\}} \textit{:=} \textbf{value} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{hashtable} \newline
+
+\textit{fn} \textbf{read\_array}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{array} \textit{:=} [] \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
+\indent\hspace{1cm} \textit{var} \textbf{element} \textit{:=} \textbf{read\_any()} \newline
+\indent\hspace{1cm} \textit{push} \textbf{array, element} \newline
 \indent\hspace{.5cm} \textit{return} \textbf{hashtable} \newline
 }
 
@@ -321,219 +329,4 @@ Floating point values are usually encoded as follows: sign, mantissa, exponent.
 
 -still to be written-
 
-\section{Examples}
-
-\textit{
-Binary data representations can be given in two formats, bit-wise and byte-wise.
-Bit-wise data is preceeded, per section, by a 'B:',
-while byte-wise data is preceeded, per section, by a 'H:' (and is denoted in
-hexadecimal tuplets).
-}
-
-\subsection{Example 001}
-
-The following input:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-B: 0 0 0 0  0 0 0 0
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Produces the following JSON:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-[ ]
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Three implicit nulls are read from the input, which are all discarded.
-Since the implicit top-list now contains zero elements, it is presented
-as the result of the decoding.
-
-\subsection{Example 002}
-
-The following input:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-B: 0 0 1 0  0 0 0 0
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Produces the following JSON:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-null
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-An explicit null is read, followed by the read of two implicit nulls.
-The implicit nulls are discarded (because they are in the tail).
-Since the implicit top-list only contains one element, it is presented
-as a single null, not encapsulated in an array.
-
-\subsection{Example 003}
-
-The following input:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-B: 0 0 1 0  0 1 0 0
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Produces the following JSON:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-[ null, null ]
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Here, two explicit (un-erasable) nulls are encoded in the implicit
-top-list, followed by two zero bits. The decoder reads these bits
-(and one more, which will also be virtually zero), and interprets that
-as an implicit null. The implicit null is then discarded.
-
-\subsection{Example 004}
-
-The following input:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-B: 1 1 0 1  0 0 0 0
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Produces the following JSON:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-[ null ]
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-In this example, the type number six (1 1 0) denotes an explicit array.
-It is followed by a one-byte, which denotes the fact that the array
-contains at least one more element. The subsequent zeroes denote the filling.
-
-Note that the encoding could have also used an explicit null here
-(making for 1 1 0 1  0 0 1 0).
-
-\subsection{Example 005}
-
-The following input:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-B: 1 1 0 1  0 0 1 1    0 0 1 0  0 0 0 0
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Read from left to right:
-\begin{itemize}
-\item 'I have a list' (3 bits).
-\item 'The list has one more element' (1 bit).
-\item 'I have an explicit null' (3 bits).
-\item 'The list has one more element' (1 bit).
-\item 'I have an explicit null' (3 bits).
-\item 'The list has no more elements' (1 bit).
-\item .. followed by zero bits which may be interpreted as implicit
-      nulls, but which will be discarded.
-\end{itemize}
-
-Produces the following JSON:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-[ null, null ]
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Note that this is the exact same output as given in example 3, but now
-made explicit.
-
-\subsection{Example 006}
-
-The following JSON input:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-[
-  "foo", "bar", { "foo" : "bar" }, [], [ [ ] ]
-]
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-When encoded, leads to the following binary:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-00000000  db 66 b7 db db 62 b0 dc  9f b3 5b ed eb 62 b0 dc  |.f...b....[..b..|
-00000010  8e 77 00                                          |.w.|
-00000013
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
-
-Which, in turn, when fed to the decoder, leads to this JSON:
-
-\begin{changemargin}{-60mm}{0mm}
-\begin{myquote}
-\begin{verbatim}
-
-["foo","bar",{"foo":"bar"},[],[[]]]
-
-\end{verbatim}
-\end{myquote}
-\end{changemargin}
+\input{examples.tex}
