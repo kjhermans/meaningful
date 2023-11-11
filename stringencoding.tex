@@ -1,0 +1,130 @@
+\subsection{String Encoding}
+
+\subsubsection{Overhead}
+
+Currently, the implementation pulls a single bit to see if it would need
+to read another single byte. This creates a string encoding overhead of
+12.5\% in the limit (long strings), which may be seen as excessive.
+
+It is relatively easy however, to create a string encoding scheme that
+is more frugal. For example: pull three bits to determine how many of the
+following 0-7 bytes should be read. This does not exceed the amount of
+bytes required by the decoder to keep in a buffer (which is maximized at
+sizeof(double)). Overhead then drops to lower percentages in limit
+(in this case 3 bits out of 56, or 5.4\%).
+
+In pseudo code:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
+\textit{fn} \textbf{read\_string}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{string} \textit{:=} "" \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished}: \newline
+\indent\hspace{1cm} \textit{var} \textbf{sectionlength} \textit{:=} \textbf{read\_bits(3)} \newline
+\indent\hspace{1cm} \textit{if !} \textbf{sectionlength}: \newline
+\indent\hspace{1.5cm} \textit{return} \textbf{string} \newline
+\indent\hspace{1cm} \textit{for} \textbf{i} \textit{in} 1..\textbf{sectionlength}: \newline
+\indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{chr(read\_bits(8))} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{string} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+\subsubsection{Unicode and UTF-8 Encoding}
+
+Because UTF-8 encoding, which is required for popular outputs such as
+JSON and XML, has invalid byte encoding sequences
+(for example, a 110xxxxx initial byte \textit{not} followed by a
+10xxxxxx byte), it cannot be used as-is against the decoder (which
+should be error free). The following options are considered:
+
+\begin{itemize}
+\item Be oblivious to these types of encodings, which means that JSON and XML
+      \textbf{must} assume that strings are valid byte-for-byte
+      as presented by the decoder. The accompanying encoder simply
+      adds bytes as it encounters them.
+
+      From a principle standpoint: purely random inputs to the
+      decoder may now fail at the JSON/XML level because they may
+      contain / it is very likely that they will contain invalid
+      UTF-8 sequences. The question is: do you care about this type
+      of invalidity?
+\item Create a special type in the encoding, a 'wide-character string' type,
+      either as an additional type or as a replacement of the string type,
+      that re-encodes wide characters in a way that cannot have
+      potential interpretation errors. Added bonus: if the 'wide string' type
+      were to be made additionally to the 'regular string' type, the now
+      'non-wide' characters can all be encoded as seven bits, nixing the
+      string encoding overhead discussion in the previous chapter.
+\item Wide characters can either be encoded using the full width (20-21 bits
+      in case of Unicode), or they can use their own continuity bits over
+      multiple segments ('this character is wide', read eight bits,
+      'this character has another segment', read six more bits, etc).
+\end{itemize}
+
+The second option is probably the most desirable. However, it requires:
+
+\begin{itemize}
+\item An potential extension of the type system with one extra type
+      ('wide character string'), or the assumption that all strings are
+      wide character encoded (which may be costly in terms of overhead).
+\item A scheme that can encode wide characters without errors.
+\item An obligation on genuine encoders, to use said encoding when
+      encountering character values $>$ 127.
+\end{itemize}
+
+\subsubsection{UTF-8 'Clone' Encoding}
+
+This could work as follows
+(limited to 2\textsuperscript{20} characters (Unicode has slightly more));
+From the POV of the decoder:
+
+\begin{itemize}
+\item Pop one bit: must I read another character?
+      If no: stop reading the string, if yes:
+\item Pop one bit: is this character 'Unicode'?
+\item If it is not Unicode, pop seven pits. These are your ASCII character.
+      So for ASCII characters, this scheme is 'lossless' wrt the
+      original string encoding proposal.
+\item If it is Unicode, pop eight bits. These will form the least relevant
+      byte of the wide character. Pop a continuity bit. If true, pop
+      another eight bits. Add these to the left of the first byte.
+      Pop a last possible continuity bit. If true, pop the last four bits.
+      These form the most relevant bits of the wide character.
+\end{itemize}
+
+In pseudo code:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
+\textit{fn} \textbf{read\_string}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{string} \textit{:=} "" \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
+\indent\hspace{1cm} \textit{var} \textbf{unicode} \textit{:=} \textbf{read\_bits(1)} \newline
+\indent\hspace{1cm} \textit{if} \textbf{unicode}: \newline
+
+\indent\hspace{1.5cm} \textit{var} \textbf{highest} := 0 \newline
+\indent\hspace{1.5cm} \textit{var} \textbf{middle} := 0 \newline
+\indent\hspace{1.5cm} \textit{var} \textbf{lowest} := \textbf{read\_bits(8)} \newline
+\indent\hspace{1.5cm} \textit{if} \textbf{read\_bits(1)}: \newline
+\indent\hspace{2cm} middle := \textbf{read\_bits(8)} \newline
+\indent\hspace{2cm} \textit{if} \textbf{read\_bits(1)}: \newline
+\indent\hspace{2.5cm} highest := \textbf{read\_bits(4)} \newline
+\indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{w\_chr(lowest $|$ (middle $<$$<$ 8) $|$ (highest $<$$<$ 16))} \newline
+
+\indent\hspace{1cm} \textit{else}: \newline
+\indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{chr(read\_bits(7))} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{string} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+This will implement (most of) Unicode, yet be as frugal with
+overhead as ASCII.
+
