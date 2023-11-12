@@ -108,7 +108,7 @@ The encoder will use this specifiction simply in reverse.
 \item There are the following types (eight, so that they fit exactly
       into three bits):
   \begin{itemize}
-  \item NULL
+  \item Implicit NULL
   \item Explicit NULL
   \item BOOLEAN
   \item INTEGER (64 bits signed)
@@ -312,8 +312,9 @@ For example:
      |             |             |                    - 10 int64 (64)
      |             |             /                    - 11 float (64)
      |             \- 1 non-null
-     |                           \- 1 arbitrarylength - 0 bigint
-     |                                                - 1 string
+     |                           \- 1 arbitrarylength - 0  bigint
+     |                                                - 10 string (7 bits)
+     |                                                - 11 string (wide char)
      /
 type               /- 0 array
      \- 1 compound
@@ -324,7 +325,7 @@ type               /- 0 array
 \end{changemargin}
 }
 
-Giving you ten possible types. Note that any extension of the scheme
+Giving you eleven possible types. Note that any extension of the scheme
 above is possible. Also note that this system also has drawbacks:
 six bits to encode a boolean, for example.
 
