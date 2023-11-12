@@ -339,4 +339,47 @@ six bits to encode a boolean, for example.
 %
 %-still to be written-
 
+\section{Comparisons}
+
+\subsection{DER Comparison - Complex Data Structures}
+
+A comparison with DER encoding was made. This requires a bit of
+introduction: DER and completely meaningful encoding
+are not comparable. DER formats
+are only slightly self-descriptive and have to be communicated
+out-of-band. DER knows no key/value pairs, or hashtable, data structure.
+On the other hand: completely meaningful encoding, in its naive
+implementation (which was used), knows only seven data types.
+Only as much as JSON. Some compromises were made: hashtables were
+encoded in JSON, for example, as arbitrary length sequences of
+sequences with length two (for key and value).
+
+\subsubsection{Method}
+
+The meaningful encoder tool, and a separately written tool, json2der were
+used together to create an encoding for the format in question.
+
+On the X-axis is a measure of complexity of the randomly generated
+JSON. This complexity pertains to the (bias given to the random) number
+of traversals of
+the JSON data structure, and the
+depth of traversal of the JSON data structure, and the length
+of the strings of hashtable-keys generated.
+
+On the Y-axis is the size of the generated binary encoding, averaged
+out over 16 attempts to generate a structure, per level of complexity.
+
+The light grey represents DER, the dark grey represents the completely
+meaningful encoding.
+
+\subsubsection{Outcome}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=100mm]{comparison_chart}
+\end{figure}
+
+One can see that completely meaningful encoding neatly trails DER, and
+even is slightly more compressed.
+
 \input{examples.tex}
