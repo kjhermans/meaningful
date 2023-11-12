@@ -4,11 +4,10 @@ The premise of this treatise is that it must be possible to create
 a binary encoding format specification such that any random input 
 deterministically and without an error, produces a valid output.
 The use of this specification must allow for complex data structures
-in the output (for example, as offered by ASN.1 \cite{bib:asn1},
-  XML \cite{bib:xml} or JSON \cite{bib:json})
-and even useful ones (in other words, this is not just a joke).
+in the output (for example, as offered by ASN.1 \cite{bib:asn1}
+  XML \cite{bib:xml} or JSON \cite{bib:json}).
 
-In other words, the following must always work:
+In other words, the following should always work:
 
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
@@ -24,23 +23,21 @@ $ #... some convoluted JSON expression on stdout...
 
 \section{Problem Statement}
 
-Binary encodings are often chosen because they are (supposedly) dense.
+Binary encodings are often chosen because of their density.
 However, when applied, they usually contain at least some 'air'
 (superfluous or useless information).
 The problem with binary encodings is that this 'air' can also contain
 encoding mistakes. For example:
 
 \begin{itemize}
-\item When using TLV \cite{bib:tlv}, they may contain types that aren't defined.
+\item When using TLV \cite{bib:tlv}, they may contain undefined type identifiers.
 \item When using TLV, they may contain lengths that are illegal.
   Either because they are zero, which the type does not support,
-  or because they exceed the length of the message size, or indeed
+  or because they exceed the length of the message size, or
   the size of the element that contains them.
-\item For example, in DER \cite{bib:ber} encoding it is possible to defines lengths
+\item For example, in DER \cite{bib:ber} encoding it is possible to define lengths
   that could not possibly exist in our universe.
-\item For example, in Unicode, there exist illegal encodings, when the
-  amount of bytes part of the definition of a character, aren't
-  available, or when the resultant character value isn't specified.
+\item For example, in UTF-8, there exist illegal wide character encodings.
 \end{itemize}
 
 Textual formats can convey complex data structures, but are also
@@ -64,7 +61,7 @@ this one being no exception.
 Tail end recovery of both 'JSON'- or 'DER'-like encodings should be
 relatively easy (just wrap up the parsing effort and present the current
 state of the parser as the result to the caller), but this is not standard.
-With this encoding however, tail end recovery is implicit.
+With the content encoding format described in this paper however, tail end recovery is implicit.
 
 \section{Design Principles}
  
@@ -77,8 +74,9 @@ With this encoding however, tail end recovery is implicit.
   That is to say:
   \begin{itemize}
   \item Encodes all eight-bit bytes and all lengths of those bytes.
+        And maybe even wide characters.
   \item Is complex in that it provides at least for strings, integers,
-    floating points, 'hashtable' name-value lists, and arrays.
+        floating points, 'hashtable' name-value lists, and arrays.
   \end{itemize}
 \item We don't care about being truly efficient. The fact that we're
   binarily encoding should bring us enough of that. The main goal stands:
@@ -284,8 +282,8 @@ And:
 
 \subsection{Bigger type space encoding}
 
-Currently, the amount of types has been limited by three bits to eight permutation.
-This happened
+Currently, by reading three bits, the amount of types has been limited
+to eight permutations. This happened
 to satisfy the requirements of encoding JSON. However, it may be that you're
 having a more extensive need for type encoding. In that case you could
 extend the type identifyer sequence with one bit, giving you sixteen
@@ -332,12 +330,12 @@ six bits to encode a boolean, for example.
 
 \input{stringencoding.tex}
 
-\subsection{Integer Encoding}
-
--still to be written-
-
-\subsection{Floating Point Number Encoding}
-
--still to be written-
+%\subsection{Integer Encoding}
+%
+%-still to be written-
+%
+%\subsection{Floating Point Number Encoding}
+%
+%-still to be written-
 
 \input{examples.tex}
