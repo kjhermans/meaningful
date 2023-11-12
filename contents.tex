@@ -4,7 +4,8 @@ The premise of this treatise is that it must be possible to create
 a binary encoding format specification such that any random input 
 deterministically and without an error, produces a valid output.
 The use of this specification must allow for complex data structures
-in the output (for example, as offered by ASN.1, XML or JSON),
+in the output (for example, as offered by ASN.1 \cite{bib:asn1},
+  XML \cite{bib:xml} or JSON \cite{bib:json})
 and even useful ones (in other words, this is not just a joke).
 
 In other words, the following must always work:
@@ -13,9 +14,9 @@ In other words, the following must always work:
 \begin{myquote}
 \begin{verbatim}
 
-$ cat /dev/random | head -c 64 > /tmp/foo
-$ perl ./decoder.pl /tmp/foo
-$ #... some convoluted JSON structure on stdout...
+$ cat /dev/random | head -c $ANYNUMBER > /tmp/foo
+$ ./decoder /tmp/foo
+$ #... some convoluted JSON expression on stdout...
 
 \end{verbatim}
 \end{myquote}
@@ -24,18 +25,18 @@ $ #... some convoluted JSON structure on stdout...
 \section{Problem Statement}
 
 Binary encodings are often chosen because they are (supposedly) dense.
-However, when applied, they often contain at least some 'air'
+However, when applied, they usually contain at least some 'air'
 (superfluous or useless information).
 The problem with binary encodings is that this 'air' can also contain
 encoding mistakes. For example:
 
 \begin{itemize}
-\item When using TLV, they may contain types that aren't defined.
+\item When using TLV \cite{bib:tlv}, they may contain types that aren't defined.
 \item When using TLV, they may contain lengths that are illegal.
   Either because they are zero, which the type does not support,
   or because they exceed the length of the message size, or indeed
   the size of the element that contains them.
-\item For example, in DER encoding it is possible to defines lengths
+\item For example, in DER \cite{bib:ber} encoding it is possible to defines lengths
   that could not possibly exist in our universe.
 \item For example, in Unicode, there exist illegal encodings, when the
   amount of bytes part of the definition of a character, aren't
@@ -64,18 +65,6 @@ Tail end recovery of both 'JSON'- or 'DER'-like encodings should be
 relatively easy (just wrap up the parsing effort and present the current
 state of the parser as the result to the caller), but this is not standard.
 With this encoding however, tail end recovery is implicit.
-
-Funnily, some binary formats don't suffer from these limitations.
-Examples are raw audio, image and video encodings. So long as the
-encoder and decoder have previously agreed on resolution,
-any further bit in a video stream is simply the next bit used to
-create the current pixel, on the current scanline, in the current frame.
-
-Granted, such formats have become rare in this day and age,
-and in audio and video we can under- or overflow the input buffer of the
-decoder in time. And in images we can have an incomplete buffer.
-But what input we give it, cannot be 'illegal'. If we feed
-it random bits, the screen will show static, but it will be 'legal static'.
 
 \section{Design Principles}
  
@@ -167,11 +156,11 @@ The encoder will use this specifiction simply in reverse.
 
 \subsection{Pseudo Code}
 
-The algorithm consumes tuples for as long as there is input,
+The main decoding algorithm consumes tuples for as long as there is input,
 (given by the 'finished' variable which is set to true when the end of input
 is encountered by the 'read\_bits' function)
 and interprets these as elements of a list.
-Then it pops any non explicit nulls off of the end and, if the amount of
+Then it pops any non explicit nulls off of the end of the list and, if the amount of
 elements in the list is one, gives that element as a result
 (otherwise, gives the list itself as a result):
 
@@ -295,7 +284,8 @@ And:
 
 \subsection{Bigger type space encoding}
 
-Currently, the amount of types has been limited to eight. This happened
+Currently, the amount of types has been limited by three bits to eight permutation.
+This happened
 to satisfy the requirements of encoding JSON. However, it may be that you're
 having a more extensive need for type encoding. In that case you could
 extend the type identifyer sequence with one bit, giving you sixteen
@@ -344,20 +334,9 @@ six bits to encode a boolean, for example.
 
 \subsection{Integer Encoding}
 
-Currently, integers are encoded as eight byte integers. This:
-
-\begin{itemize}
-\item May not sit well with 32 bit platforms.
-\item May not satisfy those who require bigints (for example, for use in
-      cryptographic applications).
-\end{itemize}
-
-To address these points, refer to the section on bigger type space
-encoding.
+-still to be written-
 
 \subsection{Floating Point Number Encoding}
-
-Floating point values are usually encoded as follows: sign, mantissa, exponent.
 
 -still to be written-
 

@@ -9,8 +9,9 @@ to read another single byte. This creates a string encoding overhead of
 It is relatively easy however, to create a string encoding scheme that
 is more frugal. For example: pull three bits to determine how many of the
 following 0-7 bytes should be read. This does not exceed the amount of
-bytes required by the decoder to keep in a buffer (which is maximized at
-sizeof(double)). Overhead then drops to lower percentages in limit
+bytes required by the decoder to keep in a buffer (which has to be
+able to hold an int or double).
+Overhead then drops to lower percentages in the limit
 (in this case 3 bits out of 56, or 5.4\%).
 
 In pseudo code:
@@ -35,7 +36,8 @@ In pseudo code:
 
 \subsubsection{Unicode and UTF-8 Encoding}
 
-Because UTF-8 encoding, which is required for popular outputs such as
+Because Unicode \cite{bib:unicode} UTF-8 \cite{bib:utf8} encoding,
+which is required for popular outputs such as
 JSON and XML, has invalid byte encoding sequences
 (for example, a 110xxxxx initial byte \textit{not} followed by a
 10xxxxxx byte), it cannot be used as-is against the decoder (which
@@ -82,7 +84,8 @@ the same thing, and the user being aware of the encoding support required.
 \subsubsection{UTF-8 'Clone' Encoding}
 
 This could work as follows
-(limited to 2\textsuperscript{20} characters (Unicode has slightly more));
+(limited to 2\textsuperscript{20} characters (Unicode has slightly more,
+but these are currently unused / unlikely to be used soon));
 From the POV of the decoder:
 
 \begin{itemize}

@@ -3,25 +3,27 @@
 \subsection{Advantages}
 
 \begin{itemize}
-\item The format is ultimately streaming: the decoder never has to have
-      more than sizeof(double) into its buffer, no 'looking back' is
+\item The format can be decoded in a streaming manner: the decoder never
+      has to have
+      more than a small amount of bytes in its buffer, no 'looking back' is
       ever required.
 \item In spite of that, a complex structure a la JSON/XML/ASN.1 can be
       encoded.
 \item In fact, using the larger concept, \textit{any} structure can
       be encoded (so long as there are no value intrinsic constraints, such
       as 'this value is a prime number', or 'this value is three times the
-      previous value').
-\item While the decoder cannot fail.
-\item Therefore, cannot fail mid-decoding either (you can receive
+      previous value'). Even Unicode support is possible.
+\item While the decoder is simple to code, and cannot fail.
+\item Therefore, cannot fail mid-decoding either (so long as you have the
+      head of the message, you can receive
       partial messages and still have a valid encoding).
 \end{itemize}
 
 \subsection{Disadvantages}
 
 \begin{itemize}
-\item (In this implementation:)
-      string encoding carries a penalty of 12.5\% overhead in the limit.
+\item String encoding carries a overhead penalty
+      (in the naive implementation: 12.5\% in the limit).
 \item Encoding and decoding may not be deterministically linked: the same
       chaos may not be returned when passed through the decoder and encoder
       subsequently (the reverse order however, from JSON to binary to JSON,
@@ -35,8 +37,4 @@
       and duplicate
       keys in key/value structures are a possibility (although JSON
       leaves this behaviour undefined).
-\item Unicode support is possible, but has to be expressly applied to
-      both the encoder and decoder. Alternatively, in order to be
-      correct against the JSON spec, it's probably better to consider
-      all bytes 7-bits instead of eight in the decoder.
 \end{itemize}
