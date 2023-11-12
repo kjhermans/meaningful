@@ -167,10 +167,34 @@ The encoder will use this specifiction simply in reverse.
 
 \subsection{Pseudo Code}
 
-In pseudo code (the 'read\_bits' function consumes the given amount of bits
-from the input, and returns this as a numeric value. It also sets the
-'finished' variable flag to true when the end of input is encountered),
-the main tuple consuming function is implemented as follows
+The algorithm consumes tuples for as long as there is input,
+(given by the 'finished' variable which is set to true when the end of input
+is encountered by the 'read\_bits' function)
+and interprets these as elements of a list.
+Then it pops any non explicit nulls off of the end and, if the amount of
+elements in the list is one, gives that element as a result
+(otherwise, gives the list itself as a result):
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
+\textit{var} \textbf{finished} := \textit{false} \newline
+\textit{var} \textbf{result} := [] \newline
+\textit{while !} \textbf{finished} : \newline
+\indent\hspace{.5cm} \textit{var} \textbf{tuple} := \textbf{read\_any()} \newline
+\indent\hspace{.5cm} \textit{push} \textbf{result, tuple} \newline
+\textit{while} \textbf{result} [ -1 ] = IMPLICITNULL(0) :\newline
+\indent\hspace{.5cm} \textit{pop} \textbf{result} \newline
+\textit{if size} \textbf{result} = 1 : \newline
+\indent\hspace{.5cm} \textbf{result} := \textbf{result} [ 0 ] \newline
+\textbf{result} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+The main tuple consuming function is implemented as follows
 (default result is null, which stems from the type values of zero and one):
 
 \begin{changemargin}{-60mm}{0mm}
@@ -238,19 +262,29 @@ or not the next element is read. Like so:
 \begin{myquote}
 
 \vbox{
+\textit{fn} \textbf{read\_array}: \newline
+\indent\hspace{.5cm} \textit{var} \textbf{array} \textit{:=} [] \newline
+\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
+\indent\hspace{1cm} \textit{var} \textbf{element} \textit{:=} \textbf{read\_any()} \newline
+\indent\hspace{1cm} \textit{push} \textbf{array, element} \newline
+\indent\hspace{.5cm} \textit{return} \textbf{hashtable} \newline
+}
+
+\end{myquote}
+\end{changemargin}
+
+And:
+
+\begin{changemargin}{-60mm}{0mm}
+\begin{myquote}
+
+\vbox{
 \textit{fn} \textbf{read\_hashtable}: \newline
 \indent\hspace{.5cm} \textit{var} \textbf{hashtable} \textit{:=} \{\} \newline
 \indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
 \indent\hspace{1cm} \textit{var} \textbf{key} \textit{:=} \textbf{read\_string()} \newline
 \indent\hspace{1cm} \textit{var} \textbf{value} \textit{:=} \textbf{read\_any()} \newline
 \indent\hspace{1cm} \textbf{hashtable\{key\}} \textit{:=} \textbf{value} \newline
-\indent\hspace{.5cm} \textit{return} \textbf{hashtable} \newline
-
-\textit{fn} \textbf{read\_array}: \newline
-\indent\hspace{.5cm} \textit{var} \textbf{array} \textit{:=} [] \newline
-\indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
-\indent\hspace{1cm} \textit{var} \textbf{element} \textit{:=} \textbf{read\_any()} \newline
-\indent\hspace{1cm} \textit{push} \textbf{array, element} \newline
 \indent\hspace{.5cm} \textit{return} \textbf{hashtable} \newline
 }
 
@@ -263,18 +297,16 @@ or not the next element is read. Like so:
 
 Currently, the amount of types has been limited to eight. This happened
 to satisfy the requirements of encoding JSON. However, it may be that you're
-having a more extensive need for type encoding. In that case one could
+having a more extensive need for type encoding. In that case you could
 extend the type identifyer sequence with one bit, giving you sixteen
 possible types. Add one more bit and you'll have 32, etc.
 
 If then, however, you're not in need of all sixteen (or 32, or 64, or ...)
-types, you'll be forced to apply a modular arithmetic approach. Your type then
-becomes the modulo of type space available, divided by the amount of
-types needed. This will also make the encoder/decoder stages less
-deterministically linked (since you can have, in some cases, more than
-one discriminant for a type).
-
-Alternatively, it may make sense to appreciate types as binary trees.
+types, you can either use a modulo of type space available
+(however, this will also make the encoder/decoder stages less
+deterministically linked - since you can have, in some cases, more than
+one discriminant for a type), or you can
+appreciate types as binary trees.
 This will take more processing, but it may also yield a more
 specific encoding, that won't necessarily require modular arithmetic.
 For example:
