@@ -55,13 +55,15 @@ etc.
 All of these formats are problematic because we have to deal with
 errors during parsing. Errors in parsing are hardly ever meaningful,
 since we have no good way to recover from them (but they do introduce
-a lot of extra code). Error correcting codes can be provided with any input,
-this one being no exception.
+a lot of extra code). The most we can usually do, is point out where
+grammar was broken. Error correcting codes can be provided with any input,
+but they don't fix 'honest mistakes' - just error(s) in transmission.
 
 Tail end recovery of both 'JSON'- or 'DER'-like encodings should be
 relatively easy (just wrap up the parsing effort and present the current
 state of the parser as the result to the caller), but this is not standard.
-With the content encoding format described in this paper however, tail end recovery is implicit.
+With the content encoding format described in this paper however, tail end
+recovery is implicit.
 
 \section{Design Principles}
  
@@ -75,8 +77,10 @@ With the content encoding format described in this paper however, tail end recov
   \begin{itemize}
   \item Encodes all eight-bit bytes and all lengths of those bytes.
         And maybe even wide characters.
-  \item Is complex in that it provides at least for strings, integers,
+  \item Is complex in that it provides at least for nulls, booleans,
+        strings, integers,
         floating points, 'hashtable' name-value lists, and arrays.
+        Optionally, the type system is extensible.
   \end{itemize}
 \item We don't care about being truly efficient. The fact that we're
   binarily encoding should bring us enough of that. The main goal stands:
@@ -85,8 +89,7 @@ With the content encoding format described in this paper however, tail end recov
   and decoding: if the input to the decoder produces
   a complex data structure, then the complex data structure, when fed
   to the encoder, doesn't need to produce a copy of the input.
-\item There exists a 'null' type (in fact, there are two).
-  Which can be given explicitly, or
+\item There exists a 'null' type, which can be given explicitly, or
   we use it to fill in all sorts of blanks.
 \item On top, everything is implicitly inside a list.
   When the implicit list contains
@@ -282,8 +285,9 @@ And:
 
 \subsection{Bigger type space encoding}
 
-Currently, by reading three bits, the amount of types has been limited
-to eight permutations. This happened
+Currently, by reading three bits, the amount of types possible to
+encode is limited
+to eight permutations. This just so happened
 to satisfy the requirements of encoding JSON. However, it may be that you're
 having a more extensive need for type encoding. In that case you could
 extend the type identifyer sequence with one bit, giving you sixteen
@@ -325,9 +329,9 @@ type               /- 0 array
 \end{changemargin}
 }
 
-Giving you eleven possible types. Note that any extension of the scheme
-above is possible. Also note that this system also has drawbacks:
-six bits to encode a boolean, for example.
+Giving you eleven possible types.
+Note that this system also has drawbacks:
+six bits to encode a boolean value, for example - I think that's a lot.
 
 \input{stringencoding.tex}
 
@@ -429,7 +433,7 @@ frugal than meaningful encoding (as expected). This should tend to
 As expected, DER performs better at leaf (string) encoding while
 meaningful encoding performs better at structural encoding.
 The overhead percentages wrt one another seem to cancel each other
-out statistically. Since this is so, a further expection is that, with string
+out statistically. Since this is so, a further expectation is that, with string
 and integer encoding optimization as proposed in this paper implemented,
 this balance could made more favourable of meaningful encoding.
 

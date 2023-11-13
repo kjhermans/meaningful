@@ -12,7 +12,8 @@ following 0-7 bytes should be read. This does not exceed the amount of
 bytes required by the decoder to keep in a buffer (which has to be
 able to hold an int or double).
 Overhead then drops to lower percentages in the limit
-(in this case 3 bits out of 56, or 5.4\%).
+(in this case 3 bits out of 56, or 5.4\%) -  go to ten bits for a segment
+length, read up to a kilobyte, and the overhead drops to 0.12\%.
 
 In pseudo code:
 
@@ -24,7 +25,7 @@ In pseudo code:
 \indent\hspace{.5cm} \textit{var} \textbf{string} \textit{:=} "" \newline
 \indent\hspace{.5cm} \textit{while !} \textbf{finished}: \newline
 \indent\hspace{1cm} \textit{var} \textbf{sectionlength} \textit{:=} \textbf{read\_bits(3)} \newline
-\indent\hspace{1cm} \textit{if !} \textbf{sectionlength}: \newline
+\indent\hspace{1cm} \textit{if} \textbf{sectionlength} = 0: \newline
 \indent\hspace{1.5cm} \textit{return} \textbf{string} \newline
 \indent\hspace{1cm} \textit{for} \textbf{i} \textit{in} 1..\textbf{sectionlength}: \newline
 \indent\hspace{1.5cm} \textbf{string} \textit{+=} \textbf{chr(read\_bits(8))} \newline
