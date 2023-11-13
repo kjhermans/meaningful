@@ -371,12 +371,13 @@ On the other hand: completely meaningful encoding, in its naive
 implementation (which was used), knows only seven data types.
 Only as much as JSON. Some compromises were made: hashtables were
 encoded in JSON, for example, as arbitrary length sequences of
-sequences with length two (for key and value).
+sequences with length two (for key and value - this is common with
+certificates, for example).
 
 \subsubsection{Method}
 
 The meaningful encoder tool and a separately written tool, json2der, were
-used together to create an encoding for the format in question.
+each used to create an encoding for random JSON with increasing complexity.
 
 On the X-axis is a measure of complexity of the randomly generated
 JSON. This complexity pertains to the (bias given to the random) number

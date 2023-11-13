@@ -73,9 +73,10 @@ sub random_value
     return undef;
   } elsif ($type == 1) {
     return ( 'true', 'false' )[ int(rand(2)) ];
-  } elsif ($type == 2) {
-    return (int(rand(20000000)) / int(rand(20000000)));
-  } elsif ($type == 3) {
+#  } elsif ($type == 2) {
+#    return (rand(20000000) rand(20000000));
+#  } elsif ($type == 3) {
+  } elsif ($type == 2 || $type == 3) {
     return int(rand(20000000));
   } elsif ($type > 4 && $type <= 8) {
     return random_key( int(rand(512)) + 8 );
