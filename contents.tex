@@ -14,7 +14,7 @@ In other words, the following should always work:
 \begin{verbatim}
 
 $ cat /dev/random | head -c $ANYNUMBER > /tmp/foo
-$ ./decoder /tmp/foo
+$ ./decoder < /tmp/foo
 $ #... some convoluted JSON expression on stdout...
 
 \end{verbatim}
