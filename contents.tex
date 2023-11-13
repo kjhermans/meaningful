@@ -421,11 +421,16 @@ then compared.
 \end{figure}
 
 It can be clearly seen that the DER encoding of strings is more
-frugal than meaningful encoding (as expected).
+frugal than meaningful encoding (as expected). This should tend to
+12.5\% (as can be seen from the graph).
 
 \subsection{DER Comparison - Conclusion}
 
 As expected, DER performs better at leaf (string) encoding while
-meaningful encoding performs slightly better at structural encoding.
+meaningful encoding performs better at structural encoding.
+The overhead percentages wrt one another seem to cancel each other
+out statistically. Since this is so, a further expection is that, with string
+and integer encoding optimization as proposed in this paper implemented,
+this balance could made more favourable of meaningful encoding.
 
 \input{examples.tex}
