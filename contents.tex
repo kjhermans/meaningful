@@ -331,10 +331,28 @@ six bits to encode a boolean, for example.
 
 \input{stringencoding.tex}
 
-%\subsection{Integer Encoding}
-%
-%-still to be written-
-%
+\subsection{Integer Encoding}
+
+Currently, integers are encoded as-is (the system's memory representation
+of a 64 bit signed integer).
+It should be possible to
+create an integer encoding based on continuity bits per 8-bit section.
+It is assumed
+that most integers leave the most relevant parts of their encoding zero.
+This will make integer compression perform better
+than DER's, and will be more portable across systems.
+For example as follows (assuming a 32 bit signed integer):
+
+\begin{itemize}
+\item Read one bit; this bit is the sign of the number. One means minus.
+\item Read a continuity bit. If one, read a byte. This byte will be the
+      least relevant byte of the quad.
+\item Perform this step a maximum of three more times. Insert the bytes
+      from least to most relevant positions in the quad. Note that the
+      last time, only seven bits will be read (because the sign will be
+      part of the 32 bits being transcoded).
+\end{itemize}
+
 %\subsection{Floating Point Number Encoding}
 %
 %-still to be written-
@@ -346,7 +364,8 @@ six bits to encode a boolean, for example.
 A comparison with DER encoding was made. This requires a bit of
 introduction: DER and completely meaningful encoding
 are not comparable. DER formats
-are only slightly self-descriptive and have to be communicated
+are only slightly self-descriptive and have to have their structure
+communicated
 out-of-band. DER knows no key/value pairs, or hashtable, data structure.
 On the other hand: completely meaningful encoding, in its naive
 implementation (which was used), knows only seven data types.
@@ -356,7 +375,7 @@ sequences with length two (for key and value).
 
 \subsubsection{Method}
 
-The meaningful encoder tool, and a separately written tool, json2der were
+The meaningful encoder tool and a separately written tool, json2der, were
 used together to create an encoding for the format in question.
 
 On the X-axis is a measure of complexity of the randomly generated
@@ -376,10 +395,35 @@ meaningful encoding.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=100mm]{comparison_chart}
+\includegraphics[width=80mm]{comparison_chart}
 \end{figure}
 
 One can see that completely meaningful encoding neatly trails DER, and
 even is slightly more compressed.
+
+\subsection{DER Comparison - String Encoding}
+
+\subsubsection{Method}
+
+A JSON file was created, with a single key/value pair, where the value
+is a string of increasing length (value of the X-axis times four).
+The JSON was then fed to both the DER
+encoder and the meaningful encoder. The resulting sizes of the binary were
+then compared.
+
+\subsubsection{Outcome}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=80mm]{stringcomparison}
+\end{figure}
+
+It can be clearly seen that the DER encoding of strings is more
+frugal than meaningful encoding (as expected).
+
+\subsection{DER Comparison - Conclusion}
+
+As expected, DER performs better at leaf (string) encoding while
+meaningful encoding performs slightly better at structural encoding.
 
 \input{examples.tex}
