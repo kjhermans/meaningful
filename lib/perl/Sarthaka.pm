@@ -153,7 +153,11 @@ sub __encode_float
 sub __decode_float
 {
   my ($obj) = @_;
-  return 0.0;
+  my $float = 0.0;
+  my $enc = pack('d', $float);
+  my $bytes = __decode_bytes(length($enc), $obj);
+  my $result = unpack('d', $bytes);
+  return $result;
 }
 
 ## Assuming max 64 bit signed integer (excess will not be encoded)
