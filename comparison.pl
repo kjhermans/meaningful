@@ -6,7 +6,8 @@ for (my $i=0; $i < 512; $i++) {
   print STDERR "$i .. ";
   for (my $j=0; $j < 16; $j++) {
     system("perl ./randomizer.pl $i > /tmp/rnd_$i.json");
-    system("perl ./encoder.pl /tmp/rnd_$i.json > /tmp/rnd_$i.bin");
+#    system("perl ./encoder.pl /tmp/rnd_$i.json > /tmp/rnd_$i.bin");
+    system("perl -I lib/perl ./encode2.pl /tmp/rnd_$i.json > /tmp/rnd_$i.bin");
     system("perl ./json2der.pl /tmp/rnd_$i.json > /tmp/rnd_$i.der");
     my @s1 = stat("/tmp/rnd_$i.bin");
     my @s2 = stat("/tmp/rnd_$i.der");
