@@ -32,12 +32,26 @@ sub decode
   for (my $i=0; $i < length($bin); $i++) {
     push @bytes, ord(substr($bin, $i, 1));
   }
-  my $ref = __decode_top({ bytes => \@bytes, byteoffset => 0, bitoffset => 0 });
-  ##.. pop excess implicit nulls
+  my $obj = { bytes => \@bytes, byteoffset => 0, bitoffset => 0 };
+  my $ref = __decode_top($obj);
+  while (scalar(@{$ref}) && ref $ref->[-1] eq 'Sarthaka::ImplicitNull') {
+    pop @{$ref};
+  }
   if (scalar(@{$ref}) == 1) {
     return $ref->[0];
   } else {
     return $ref;
+  }
+}
+
+sub decode_from_file
+{
+  my $path = shift;
+  my $fh;
+  if ($path eq '-') {
+##..
+  } else {
+##..
   }
 }
 
@@ -84,8 +98,10 @@ sub __encode_ref
 sub __decode_ref
 {
   my ($obj) = @_;
-  my $type = __decode_bits(3, $obj);
+  my $type = __decode_type($obj);
   if ($type == 0) {
+    return undef;
+#    return Sarthaka::ImplicitNull->new();
   } elsif ($type == 1) {
     return undef;
   } elsif ($type == 2) {
@@ -97,9 +113,9 @@ sub __decode_ref
   } elsif ($type == 5) {
     return __decode_string($obj);
   } elsif ($type == 6) {
-    return __decode_hash($obj);
-  } elsif ($type == 7) {
     return __decode_array($obj);
+  } elsif ($type == 7) {
+    return __decode_hash($obj);
   }
 }
 
@@ -137,6 +153,7 @@ sub __encode_float
 sub __decode_float
 {
   my ($obj) = @_;
+  return 0.0;
 }
 
 ## Assuming max 64 bit signed integer (excess will not be encoded)
@@ -207,9 +224,11 @@ sub __encode_string
     if (length($ref) > 1024) {
       $head = substr($ref, 0, 1024);
       $ref = substr($ref, 1024);
+    } else {
+      $ref = '';
     }
     __encode_bits(length($head), 10, $obj);
-    __encode_string($head, $obj);
+    __encode_bytes($head, $obj);
   }
   __encode_bits(0, 10, $obj);
 }
@@ -218,7 +237,7 @@ sub __decode_string
 {
   my ($obj) = @_;
   my $result = '';
-  while (!$obj->{eof} && __decode_bit($obj)) {
+  while (!$obj->{eof}) {
     my $length = __decode_bits(10, $obj);
     last if (!$length);
     for (my $i=0; $i < $length; $i++) {
@@ -286,14 +305,14 @@ sub __encode_bit
     $obj->{bitoffset} = 0;
   }
   if ($bit) {
-    $obj->{bytes}[-1] |= (1 << (7-$obj->{bitoffset}));
+    $obj->{bytes}[-1] |= (1 << (7 - $obj->{bitoffset}));
   }
 }
 
 sub __decode_bit
 {
   my ($obj) = @_;
-  if ($obj->{byteoffset} > scalar(@{$obj->{bytes}})) {
+  if ($obj->{byteoffset} >= scalar(@{$obj->{bytes}})) {
     $obj->{eof} = 1;
     return 0;
   }
@@ -372,6 +391,15 @@ sub __decode_bytes
     $string .= chr($byte);
   }
   return $string;
+}
+
+package Sarthaka::ImplicitNull;
+
+sub new
+{
+  my $result = {};
+  bless $result, 'Sarthaka::ImplicitNull';
+  return $result;
 }
 
 1;
