@@ -218,6 +218,12 @@ sub __encode_string
 {
   my ($ref, $obj) = @_;
   __encode_type(5, $obj);
+  __encode_string_body($ref, $obj);
+}
+
+sub __encode_string_body
+{
+  my ($ref, $obj) = @_;
   $ref = "$ref";
   while (length($ref)) {
     my $head = $ref;
@@ -278,7 +284,7 @@ sub __encode_hash
   foreach my $key (@keys) {
     my $value = $ref->{$key};
     __encode_bit(1, $obj);
-    __encode_string("$key", $obj);
+    __encode_string_body("$key", $obj);
     __encode_ref($value, $obj);
   }
   __encode_bit(0, $obj);
