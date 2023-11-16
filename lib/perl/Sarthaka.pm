@@ -231,9 +231,9 @@ sub __encode_string_body
   $ref = "$ref";
   while (length($ref)) {
     my $head = $ref;
-    if (length($ref) > 1024) {
-      $head = substr($ref, 0, 1024);
-      $ref = substr($ref, 1024);
+    if (length($ref) > 1023) {
+      $head = substr($ref, 0, 1023);
+      $ref = substr($ref, 1023);
     } else {
       $ref = '';
     }
