@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 
-for (my $i=0; $i < 512; $i++) {
+for (my $i=0; $i < 512; $i += 4) {
   my @f1 = ();
   my @f2 = ();
   print STDERR "$i .. ";
-  for (my $j=0; $j < 16; $j++) {
+  for (my $j=0; $j < 64; $j++) {
     system("perl ./randomizer.pl $i > /tmp/rnd_$i.json");
 #    system("perl ./encoder.pl /tmp/rnd_$i.json > /tmp/rnd_$i.bin");
     system("perl -I lib/perl ./encode2.pl /tmp/rnd_$i.json > /tmp/rnd_$i.bin");

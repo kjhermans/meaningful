@@ -7,6 +7,9 @@
       has to have
       more than a small amount of bytes in its buffer, no 'looking back' is
       ever required.
+\item Therefore, it is 'auto-limiting': a large value such as a large string
+      will never be read for more than one byte, or one block, beyond the
+      input boundary.
 \item In spite of that, a complex structure a la JSON/XML/ASN.1 can be
       encoded.
 \item In fact, using the larger concept, \textit{any} structure can
