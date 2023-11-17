@@ -135,8 +135,8 @@ The encoder will use this specifiction simply in reverse.
         cast them to the machine representation, and move on to the next tuple.
   \item If it is a string, it will go into a loop determining, per byte,
         whether or not to read it. It does this by popping a bit and if
-        it is one, it will pop the byte. If it is zero, it assumes the
-        string is finished and move on to the next tuple.
+        it is one, it will pop the byte. If the 'continuity bit' is zero,
+        it assumes the string is finished and move on to the next tuple.
   \item If it is a list, it does the same 'continuity bit popping' for
         each list element, and each element recurses into the list-tuple
         decoding.
@@ -373,8 +373,8 @@ communicated
 out-of-band. DER knows no key/value pairs, or hashtable, data structure.
 On the other hand: completely meaningful encoding, in its naive
 implementation (which was used), knows only seven data types.
-Only as much as JSON. Some compromises were made: hashtables were
-encoded in JSON, for example, as arbitrary length sequences of
+Some compromises were made: hashtables, for example, were encoded
+in DER as arbitrary length sequences of
 sequences with length two (for key and value - this is common with
 certificates, for example).
 
@@ -405,7 +405,7 @@ meaningful encoding.
 
 One can see that completely meaningful encoding neatly trails DER, and
 even is slightly more compressed (average overhead of DER to meaningful
-encoding is 13\%).
+encoding in this range is 13\%).
 
 \subsection{DER Comparison - String Encoding}
 
