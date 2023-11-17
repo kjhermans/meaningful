@@ -9,9 +9,11 @@ test:
 
 c:
 	$(CC) -Wall -Wextra decoder.c -o decoder
+	cd lib/c && make
 
 clean:
 	rm -f *.toc *.pdf *.out *.log *.aux *.idx *.enc
+	cd lib/c && make clean
 
 archive: clean
 	RELEASE=$$(cat version); \
