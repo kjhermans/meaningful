@@ -294,7 +294,7 @@ extend the type identifyer sequence with one bit, giving you sixteen
 possible types. Add one more bit and you'll have 32, etc.
 
 If then, however, you're not in need of all sixteen (or 32, or 64, or ...)
-types, you can either use a modulo of type space available
+types, you can either use a modulus of the type space available
 (however, this will also make the encoder/decoder stages less
 deterministically linked - since you can have, in some cases, more than
 one discriminant for a type), or you can
@@ -388,7 +388,8 @@ JSON. This complexity pertains to the (bias given to the random) number
 of traversals of
 the JSON data structure, and the
 depth of traversal of the JSON data structure, and the length
-of the strings of hashtable-keys generated. Source code \cite{bib:randomizer}.
+of the strings of hashtable-keys generated. Source code of the
+JSON randomizer tool here: \cite{bib:randomizer}.
 
 On the Y-axis is the size of the generated binary encoding, averaged
 out over 16 attempts to generate a structure, per level of complexity.
