@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <sarthaka.h>
+#include <stdio.h> // remove
 
 static
 void sarthaka_decode_tuple
@@ -74,7 +75,11 @@ void sarthaka_decode_bits
     unsigned bit;
     sarthaka_readbit(s, (unsigned*)&bit);
     if (bit) {
+#ifdef _SARTHAKA_SMALLENDIAN_
       *result |= (1 << i);
+#else
+      *result |= (1 << (nbits-(i+1)));
+#endif
     }
   }
 }
@@ -84,7 +89,11 @@ void sarthaka_encode_bits
   (sarthaka_t* s, unsigned nbits, unsigned value)
 {
   for (unsigned i=0; i < nbits; i++) {
+#ifdef _SARTHAKA_SMALLENDIAN_
     sarthaka_writebit(s, value & (1 << i));
+#else
+    sarthaka_writebit(s, value & (1 << (nbits-(i+1))));
+#endif
   }
 }
 
@@ -150,7 +159,7 @@ void sarthaka_decode_boolean
 {
   unsigned bit;
 
-  sarthaka_readbit(s, &bit);
+  sarthaka_decode_bits(s, 1, &bit);
   s->pushelt(s->structarg, SARTHAKA_TYPE_BOOLEAN, bit);
 }
 
@@ -187,9 +196,9 @@ void sarthaka_decode_integer
   unsigned sign, cont, byte;
   int64_t i = 0;
 
-  sarthaka_readbit(s, &sign);
+  sarthaka_decode_bits(s, 1, &sign);
   for (unsigned i=0; i < 8; i++) {
-    sarthaka_readbit(s, &cont);
+    sarthaka_decode_bits(s, 1, &cont);
     if (!cont) {
       break;
     }
@@ -251,13 +260,13 @@ void sarthaka_decode_string
       if (s->unicode) {
         unsigned is_unicode, cont;
         unsigned low = 0, middle = 0, high = 0;
-        sarthaka_readbit(s, &is_unicode);
+        sarthaka_decode_bits(s, 1, &is_unicode);
         if (is_unicode) {
           sarthaka_decode_byte(s, &low);
-          sarthaka_readbit(s, &cont);
+          sarthaka_decode_bits(s, 1, &cont);
           if (cont) {
             sarthaka_decode_byte(s, &middle);
-            sarthaka_readbit(s, &cont);
+            sarthaka_decode_bits(s, 1, &cont);
             if (cont) {
               sarthaka_decode_bits(s, 4, &high);
             }
@@ -273,7 +282,13 @@ void sarthaka_decode_string
       }
     }
   }
-  s->pop(s->structarg);
+  s->pop(s->structarg, SARTHAKA_TYPE_STRING);
+}
+
+static
+void sarthaka_encode_string
+  (sarthaka_t* s)
+{
 }
 
 static
@@ -284,12 +299,18 @@ void sarthaka_decode_array
 
   s->push(s->structarg, SARTHAKA_TYPE_ARRAY);
   while (!(s->eof)) {
-    sarthaka_readbit(s, &cont);
+    sarthaka_decode_bits(s, 1, &cont);
     if (cont) {
       sarthaka_decode_tuple(s);
     }
   }
-  s->pop(s->structarg);
+  s->pop(s->structarg, SARTHAKA_TYPE_ARRAY);
+}
+
+static
+void sarthaka_encode_array
+  (sarthaka_t* s)
+{
 }
 
 static
@@ -300,13 +321,19 @@ void sarthaka_decode_hashtable
 
   s->push(s->structarg, SARTHAKA_TYPE_HASHTABLE);
   while (!(s->eof)) {
-    sarthaka_readbit(s, &cont);
+    sarthaka_decode_bits(s, 1, &cont);
     if (cont) {
       sarthaka_decode_string(s);
       sarthaka_decode_tuple(s);
     }
   }
-  s->pop(s->structarg);
+  s->pop(s->structarg, SARTHAKA_TYPE_HASHTABLE);
+}
+
+static
+void sarthaka_encode_hashtable
+  (sarthaka_t* s)
+{
 }
 
 static
@@ -351,7 +378,7 @@ void sarthaka_decode
   while (!(s->eof)) {
     sarthaka_decode_tuple(s);
   }
-  s->pop(s->structarg);
+  s->pop(s->structarg, SARTHAKA_TYPE_ARRAY);
 }
 
 void sarthaka_encode

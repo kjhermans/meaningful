@@ -1,0 +1,35 @@
+TOP          <- XML
+__prefix     <- ( %s / XMLCOMMENT )*
+XML          <- XMLHEADER XMLITEM
+
+XMLCOMMENT   <- '<!--' ( . !'-->' )* '-->'
+XMLHEADER    <- '<?xml' ( . !'?>' )* '?>'
+
+UTF8WORD     <- UTF8CHAR+
+UTF8CHAR     <- { ASCII / DOUBLE / TRIPLE / QUADRUPLE }
+ASCII        <- [\000-\177]
+DOUBLE       <- [\300-\337] [\200-\277]
+TRIPLE       <- [\340-\357] [\200-\277] [\200-\277]
+QUADRUPLE    <- [\360-\367] [\200-\277] [\200-\277] [\200-\277]
+
+XMLITEM      <- XMLCONTAINER / XMLSINGLETON
+XMLCONTAINER <- ABOPEN {:tag: UTF8WORD } ATTRS ABCLOSE
+                ( XMLITEM / XMLWORD )+
+                SBOPEN $tag ABCLOSE
+XMLSINGLETON <- { ABOPEN UTF8WORD ATTRS SBCLOSE }
+
+ATTRS        <- ATTR*
+ATTR         <- NAME EQUALS VALUE
+
+XMLWORD      <- XMLCHAR+
+XMLCHAR      <- UTF8CHAR / XMLESCAPE
+XMLESCAPE    <- '&' { [a-z]+ } ';'
+
+NAME         <- '"' UTF8WORD '"'
+EQUALS       <- ':'
+VALUE        <- '"' UTF8WORD '"'
+
+ABOPEN       <- '<'
+ABCLOSE      <- '>'
+SBCLOSE      <- '/>'
+SBOPEN       <- '</'

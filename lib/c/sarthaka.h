@@ -82,7 +82,7 @@ typedef struct
   void*             writearg;
 
   void            (*push)(void* arg, unsigned type);
-  void            (*pop)(void* arg);
+  void            (*pop)(void* arg, unsigned type);
   void            (*pushelt)(void* arg, unsigned type, ...);
   void            (*pushchar)(void* arg, unsigned chr);
   void*             structarg;
