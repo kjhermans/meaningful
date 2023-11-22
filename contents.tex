@@ -46,8 +46,8 @@ Textual formats can convey complex data structures, but are also
 \begin{itemize}
 \item String escaping may lead to illegal escape sequences or breaking
   of string enclosing logic.
-\item Closing strings and brackets may be ommitted or over-supplied.
-\item Closing tags - same thing.
+\item Delimiting tokens, such as string braces, brackets or closing tags
+      may be ommitted or over-supplied.
 \item 8-bit relevant bytes in 7-bits clean messages encoded as 8-bit formats.
 \end{itemize}
 etc.
@@ -170,13 +170,13 @@ elements in the list is one, gives that element as a result
 
 \vbox{
 \textit{var} \textbf{finished} := \textit{false} \newline
-\textit{var} \textbf{result} := [] \newline
+\textit{var} \textbf{result} := [ ] \newline
 \textit{while !} \textbf{finished} : \newline
 \indent\hspace{.5cm} \textit{var} \textbf{tuple} := \textbf{read\_any()} \newline
 \indent\hspace{.5cm} \textit{push} \textbf{result, tuple} \newline
-\textit{while} \textbf{result} [ -1 ] = IMPLICITNULL(0) :\newline
+\textit{while} \textit{length} \textbf{result} $>$ 0 \textit{\&\&} \textbf{result} [ -1 ] = IMPLICITNULL(0) :\newline
 \indent\hspace{.5cm} \textit{pop} \textbf{result} \newline
-\textit{if size} \textbf{result} = 1 : \newline
+\textit{if length} \textbf{result} = 1 : \newline
 \indent\hspace{.5cm} \textbf{result} := \textbf{result} [ 0 ] \newline
 \textbf{result} \newline
 }
@@ -253,7 +253,7 @@ or not the next element is read. Like so:
 
 \vbox{
 \textit{fn} \textbf{read\_array}: \newline
-\indent\hspace{.5cm} \textit{var} \textbf{array} \textit{:=} [] \newline
+\indent\hspace{.5cm} \textit{var} \textbf{array} \textit{:=} [ ] \newline
 \indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
 \indent\hspace{1cm} \textit{var} \textbf{element} \textit{:=} \textbf{read\_any()} \newline
 \indent\hspace{1cm} \textit{push} \textbf{array, element} \newline
@@ -270,7 +270,7 @@ And:
 
 \vbox{
 \textit{fn} \textbf{read\_hashtable}: \newline
-\indent\hspace{.5cm} \textit{var} \textbf{hashtable} \textit{:=} \{\} \newline
+\indent\hspace{.5cm} \textit{var} \textbf{hashtable} \textit{:=} \{ \} \newline
 \indent\hspace{.5cm} \textit{while !} \textbf{finished} \textit{\&\&} \textbf{read\_bits(1)}: \newline
 \indent\hspace{1cm} \textit{var} \textbf{key} \textit{:=} \textbf{read\_string()} \newline
 \indent\hspace{1cm} \textit{var} \textbf{value} \textit{:=} \textbf{read\_any()} \newline
