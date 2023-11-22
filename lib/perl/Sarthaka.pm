@@ -315,7 +315,7 @@ sub __encode_bit
     $obj->{bitoffset} = 0;
   }
   if ($bit) {
-    $obj->{bytes}[-1] |= (1 << (7 - $obj->{bitoffset}));
+    $obj->{bytes}[-1] |= (1 << $obj->{bitoffset});
   }
 }
 
@@ -327,7 +327,7 @@ sub __decode_bit
     return 0;
   }
   my $inputbyte = $obj->{bytes}[ $obj->{byteoffset} ];
-  my $result = (($inputbyte >> (7 - $obj->{bitoffset})) & 0x01);
+  my $result = (($inputbyte >> $obj->{bitoffset}) & 0x01);
   if (++($obj->{bitoffset}) > 7) {
     $obj->{bitoffset} = 0;
     ++($obj->{byteoffset});
@@ -335,13 +335,42 @@ sub __decode_bit
   return $result;
 }
 
+## Low endian
+
+#sub __encode_bits
+#{
+#  my ($value, $nbits, $obj) = @_;
+#  for (my $i=0; $i < $nbits; $i++) {
+#    my $bit = $value & 0x01;
+#    $value >>= 1;
+#    __encode_bit($bit, $obj);
+#  }
+#}
+#
+#sub __decode_bits
+#{
+#  my ($nbits, $obj) = @_;
+#  my $result = 0;
+#  for (my $i=0; $i < $nbits; $i++) {
+#    my $bit = __decode_bit($obj);
+#    if ($bit) {
+#      $result |= (1 << $i);
+#    }
+#  }
+#  return $result;
+#}
+
+## High endian
+
 sub __encode_bits
 {
   my ($value, $nbits, $obj) = @_;
   for (my $i=0; $i < $nbits; $i++) {
-    my $bit = $value & 0x01;
-    $value >>= 1;
-    __encode_bit($bit, $obj);
+    if ($value & (1<<($nbits-(1+$i)))) {
+      __encode_bit(1, $obj);
+    } else {
+      __encode_bit(0, $obj);
+    }
   }
 }
 
@@ -352,7 +381,7 @@ sub __decode_bits
   for (my $i=0; $i < $nbits; $i++) {
     my $bit = __decode_bit($obj);
     if ($bit) {
-      $result |= (1 << $i);
+      $result |= (1 << ($nbits-(1+$i)));
     }
   }
   return $result;

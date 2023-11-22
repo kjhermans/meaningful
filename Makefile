@@ -7,6 +7,9 @@ doc:
 test:
 	./tester.sh
 
+test2:
+	./test2.sh
+
 c:
 	$(CC) -Wall -Wextra decoder.c -o decoder
 	cd lib/c && make
