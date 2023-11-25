@@ -117,20 +117,26 @@ void s2j_pushelt
     fprintf(stdout, "null");
     break;
   case SARTHAKA_TYPE_BOOLEAN:
-    unsigned b = va_arg(ap, unsigned);
-    if (b) {
-      fprintf(stdout, "true");
-    } else {
-      fprintf(stdout, "false");
+    {
+      unsigned b = va_arg(ap, unsigned);
+      if (b) {
+        fprintf(stdout, "true");
+      } else {
+        fprintf(stdout, "false");
+      }
     }
     break;
   case SARTHAKA_TYPE_FLOAT:
-    double d = va_arg(ap, double);
-    fprintf(stdout, "%f", d);
+    {
+      double d = va_arg(ap, double);
+      fprintf(stdout, "%f", d);
+    }
     break;
   case SARTHAKA_TYPE_INTEGER:
-    int64_t i = va_arg(ap, int64_t);
-    fprintf(stdout, "%" PRId64, i);
+    {
+      int64_t i = va_arg(ap, int64_t);
+      fprintf(stdout, "%" PRId64, i);
+    }
     break;
   }
   va_end(ap);

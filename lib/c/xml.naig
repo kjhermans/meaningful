@@ -1,9 +1,36 @@
-TOP          <- XML
-__prefix     <- ( %s / XMLCOMMENT )*
-XML          <- XMLHEADER XMLITEM
+TOP          <- XML END
 
-XMLCOMMENT   <- '<!--' ( . !'-->' )* '-->'
-XMLHEADER    <- '<?xml' ( . !'?>' )* '?>'
+XMLCOMMENT   <- '<!--' ( !'-->' . )* '-->'
+XMLHEADER    <- '<?xml' ( !'?>' . )* '?>'
+
+__prefix     <- ( %s / XMLCOMMENT )*
+XML          <- XMLHEADER? XMLITEM
+END          <- !.
+
+XMLITEM      <- XMLCONTAINER / XMLSINGLETON
+XMLCONTAINER <- { ABOPEN {:tag: TAGWORD } ATTRS ABCLOSE
+                { ( XMLITEM / XMLWORD / CDATA )+ }
+                SBOPEN $tag ABCLOSE }
+XMLSINGLETON <- { ABOPEN TAGWORD ATTRS SBCLOSE }
+
+CDATA        <- '<![CDATA[' CDATATEXT ']]>'
+CDATATEXT    <- { ( !']]>' . )* }
+
+TAGWORD      <- { ( ![<>/ \n\r\t] XMLCHAR )+ }
+
+ATTRS        <- { ATTR* }
+ATTR         <- { { NAME } EQUALS { VALUE } }
+
+XMLWORD      <- { ( ![< \n\r\t] XMLCHAR )+ }
+XMLCHAR      <- XMLESCAPE / UTF8CHAR
+XMLESCAPE    <- '&' { [a-z]+ / '#'[0-9]+ } ';'
+
+NAME         <- NAMESTRING
+EQUALS       <- '='
+VALUE        <- '"' VALUESTRING '"'
+
+NAMESTRING   <- { ( ![ \r\n\t=] UTF8CHAR )+ }
+VALUESTRING  <- { ( !'"' UTF8CHAR )+ }
 
 UTF8WORD     <- UTF8CHAR+
 UTF8CHAR     <- { ASCII / DOUBLE / TRIPLE / QUADRUPLE }
@@ -11,23 +38,6 @@ ASCII        <- [\000-\177]
 DOUBLE       <- [\300-\337] [\200-\277]
 TRIPLE       <- [\340-\357] [\200-\277] [\200-\277]
 QUADRUPLE    <- [\360-\367] [\200-\277] [\200-\277] [\200-\277]
-
-XMLITEM      <- XMLCONTAINER / XMLSINGLETON
-XMLCONTAINER <- ABOPEN {:tag: UTF8WORD } ATTRS ABCLOSE
-                ( XMLITEM / XMLWORD )+
-                SBOPEN $tag ABCLOSE
-XMLSINGLETON <- { ABOPEN UTF8WORD ATTRS SBCLOSE }
-
-ATTRS        <- ATTR*
-ATTR         <- NAME EQUALS VALUE
-
-XMLWORD      <- XMLCHAR+
-XMLCHAR      <- UTF8CHAR / XMLESCAPE
-XMLESCAPE    <- '&' { [a-z]+ } ';'
-
-NAME         <- '"' UTF8WORD '"'
-EQUALS       <- ':'
-VALUE        <- '"' UTF8WORD '"'
 
 ABOPEN       <- '<'
 ABCLOSE      <- '>'

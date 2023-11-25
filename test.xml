@@ -1,0 +1,11 @@
+<foo bar="baz" oi="nou">
+ some <boo/> text.
+ With &nbsp; escapes.
+ <a single="element" loose="yes"/>
+ And then some
+ <let>
+   Me out.
+   <with/> a single element.
+ </let>
+ more text.
+</foo>
