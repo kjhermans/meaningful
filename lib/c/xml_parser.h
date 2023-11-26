@@ -38,39 +38,57 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef struct
 {
-  char*             name;
-  char*             value;
+  union {
+    char*             bytes;
+    uint32_t*         wide;
+  }                 value;
+  unsigned          length;
+  int               iswide;
 }
-xmlattr_t;
-
-typedef struct xmltag xmltag_t;
+xmlstring_t;
 
 typedef struct
 {
-  int               istext;
-  union {
-    xmltag_t*         tag;
-    char*             text;
-  }                 form;
+  xmlstring_t       name;
+  xmlstring_t       value;
 }
-xmlitem_t;
+xmlattr_t;
+
+typedef struct xmlitem xmlitem_t;
 
 #include "array.h"
 MAKE_ARRAY_HEADER(xmlattr_t, attrlist_)
-MAKE_ARRAY_HEADER(xmlitem_t, itemlist_)
+MAKE_ARRAY_HEADER(xmlitem_t*, itemlist_)
 
-struct xmltag
+typedef struct
 {
-  char*             name;
+  xmlstring_t       name;
   attrlist_t        attributes;
   itemlist_t        items;
 }
-;
+xmltag_t;
+
+struct xmlitem
+{
+  int               istext;
+  union {
+    xmltag_t          tag;
+    xmlstring_t       text;
+  }                 form;
+};
 
 typedef struct
 {
   xmltag_t          main;
 }
 xml_t;
+
+extern
+void xml_debug
+  (xml_t* xml);
+
+extern
+int xml_parse
+  (char* string, xml_t* xml);
 
 #endif

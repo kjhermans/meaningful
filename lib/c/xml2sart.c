@@ -42,10 +42,11 @@ int main
   char* file = argv[ 1 ];
   char* contents = 0;
   unsigned len = 0;
+  xml_t xml = { 0 };
 
   if (file) {
     absorb_file(file, &contents, &len);
-    xml_parse(contents, 0);
+    xml_parse(contents, &xml);
   }
 
   return 0;

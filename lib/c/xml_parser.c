@@ -45,13 +45,76 @@ static
 naie_engine_t parser;
 
 static
+xmlstring_t xml_parse_string
+  (naio_resobj_t* resobj)
+{
+  xmlstring_t result = { 0 };
+
+  for (unsigned i=0; i < resobj->nchildren; i++) {
+    if (resobj->children[ i ]->stringlen > 1 ||
+        (unsigned char)(resobj->children[ i ]->string[ 0 ]) > 127)
+    {
+      result.iswide = 1;
+    }
+  }
+  result.length = resobj->nchildren;
+  if (result.iswide) {
+    result.value.wide = calloc(1, sizeof(uint32_t) * (result.length+1));
+    for (unsigned i=0; i < resobj->nchildren; i++) {
+//.. result.value.wide[ i ] = xml_decode_utf8(resobj->children[ i ]);
+    }
+  } else {
+    result.value.bytes = calloc(1, result.length+1);
+    memcpy(result.value.bytes, resobj->string, result.length);
+  }
+  return result;
+}
+
+static
+xmlattr_t xml_parse_attribute
+  (naio_resobj_t* resobj)
+{
+  xmlattr_t attr = { 0 };
+
+  xmlstring_t name = xml_parse_string(resobj->children[ 0 ]->children[ 0 ]);
+  xmlstring_t value = xml_parse_string(resobj->children[ 1 ]->children[ 0 ]);
+  attr.name = name;
+  attr.value = value;
+  return attr;
+}
+
+static
+attrlist_t xml_parse_attributes
+  (naio_resobj_t* resobj)
+{
+  attrlist_t result = { 0 };
+
+  for (unsigned i=0; i < resobj->nchildren; i++) {
+    xmlattr_t attr = xml_parse_attribute(resobj->children[ i ]);
+    attrlist_push(&result, attr);
+  }
+  return result;
+}
+
+static
 xmlitem_t* xml_parse_create_item
   (naio_resobj_t* resobj)
 {
   xmlitem_t* item = calloc(1, sizeof(xmlitem_t));
-  char* tagname = resobj->children[ 0 ]->string;
-  item->form.tag = calloc(1, sizeof(xmltag_t));
-  item->form.tag->name = strdup(tagname);
+  if (resobj->type == SLOTMAP_XMLCONTAINER_ABOPENTAGTAGWORDATT) {
+    item->form.tag.name = xml_parse_string(resobj->children[ 0 ]->children[ 0 ]);
+    item->form.tag.attributes = xml_parse_attributes(resobj->children[ 1 ]);
+    for (unsigned i=0; i < resobj->children[ 2 ]->nchildren; i++) {
+      xmlitem_t* subitem = xml_parse_create_item(resobj->children[ 2 ]->children[ i ]);
+      itemlist_push(&(item->form.tag.items), subitem);
+    }
+  } else if (resobj->type == SLOTMAP_XMLSINGLETON_ABOPENTAGWORDATTRSS) {
+    item->form.tag.name = xml_parse_string(resobj->children[ 0 ]); //->children[ 0 ]);
+    item->form.tag.attributes = xml_parse_attributes(resobj->children[ 1 ]);
+  } else if (resobj->type == SLOTMAP_XMLWORD_NRTXMLCHAR) {
+    item->form.text = xml_parse_string(resobj);
+    item->istext = 1;
+  }
   return item;
 }
 
@@ -60,6 +123,42 @@ void xml_parse_restructure
   (naio_resobj_t* resobj, xml_t* xml)
 {
   xmlitem_t* item = xml_parse_create_item(resobj->children[ 0 ]);
+  xml->main = item->form.tag;
+}
+
+static
+void xml_debug_tag
+  (xmltag_t* tag, unsigned indent)
+{
+  for (unsigned i=0; i < indent; i++) {
+    fprintf(stderr, "  ");
+  }
+  fprintf(stderr, "<%s", tag->name.value.bytes);
+  for (unsigned i=0; i < tag->attributes.count; i++) {
+    fprintf(stderr, " %s=\"%s\""
+      , tag->attributes.list[ i ].name.value.bytes
+      , tag->attributes.list[ i ].value.value.bytes
+    );
+  }
+  if (tag->items.count) {
+    fprintf(stderr, ">\n");
+    for (unsigned i=0; i < tag->items.count; i++) {
+      if (tag->items.list[ i ]->istext) {
+        fprintf(stderr, " %s", tag->items.list[ i ]->form.text.value.bytes);
+      } else {
+        xml_debug_tag(&(tag->items.list[ i ]->form.tag), indent+1);
+      }
+    }
+    fprintf(stderr, "</%s>\n", tag->name.value.bytes);
+  } else {
+    fprintf(stderr, "/>\n");
+  }
+}
+
+void xml_debug
+  (xml_t* xml)
+{
+  xml_debug_tag(&(xml->main), 0);
 }
 
 /**
@@ -104,7 +203,8 @@ int xml_parse
     return ~0;
   }
   naie_result_free(&result);
-  naio_result_object_debug(resobj, 0);
+//  naio_result_object_debug(resobj, 0);
   xml_parse_restructure(resobj, xml);
+xml_debug(xml);
   return 0;
 }
