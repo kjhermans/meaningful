@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "xml_parser.h"
 
+#undef ARRAY_EQUALS
 #define ARRAY_EQUALS(a,b) (&a == &b)
 
 MAKE_ARRAY_CODE(xmlattr_t, attrlist_)

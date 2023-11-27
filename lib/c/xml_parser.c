@@ -45,15 +45,62 @@ static
 naie_engine_t parser;
 
 static
+unsigned xml_char_value
+  (naio_resobj_t* resobj)
+{
+  switch (resobj->type) {
+  case 11:
+    if (0 == strcmp(resobj->string, "nbsp")) {
+      return ' ';
+    } else if (0 == strcmp(resobj->string, "lt")) {
+      return '<';
+    } else if (0 == strcmp(resobj->string, "gt")) {
+      return '>';
+    } else {
+//.. fish out the # escapes
+      return 0;
+    }
+  case 14:
+    if (resobj->stringlen > 1) {
+      if ((resobj->string[ 0 ] >> 5) == 0x06) {
+        return (
+          ((resobj->string[ 0 ] & 0x1f) << 6) |
+          ((resobj->string[ 1 ] & 0x3f))
+        );
+      } else if ((resobj->string[ 0 ] >> 4) == 0x0e) {
+        return (
+          ((resobj->string[ 0 ] & 0x0f) << 12) |
+          ((resobj->string[ 1 ] & 0x3f) << 6) |
+          ((resobj->string[ 2 ] & 0x3f))
+        );
+      } else if ((resobj->string[ 0 ] >> 3) == 0x1e) {
+        return (
+          ((resobj->string[ 0 ] & 0x07) << 18) |
+          ((resobj->string[ 1 ] & 0x3f) << 12) |
+          ((resobj->string[ 2 ] & 0x3f) << 6) |
+          ((resobj->string[ 3 ] & 0x3f))
+        );
+      } else {
+unsigned char* foo = resobj->string;
+fprintf(stderr, "NOW WHAT %.2x %.2x %.2x %.2x\n", foo[0], foo[1], foo[2], foo[3]);
+      }
+    } else {
+      return resobj->string[ 0 ];
+    }
+  }
+  return 0;
+}
+
+static
 xmlstring_t xml_parse_string
   (naio_resobj_t* resobj)
 {
   xmlstring_t result = { 0 };
 
   for (unsigned i=0; i < resobj->nchildren; i++) {
-    if (resobj->children[ i ]->stringlen > 1 ||
-        (unsigned char)(resobj->children[ i ]->string[ 0 ]) > 127)
-    {
+    unsigned charval = xml_char_value(resobj->children[ i ]);
+    if (charval > 127) {
+fprintf(stderr, "GOT %x\n", charval);
       result.iswide = 1;
     }
   }
@@ -61,7 +108,7 @@ xmlstring_t xml_parse_string
   if (result.iswide) {
     result.value.wide = calloc(1, sizeof(uint32_t) * (result.length+1));
     for (unsigned i=0; i < resobj->nchildren; i++) {
-//.. result.value.wide[ i ] = xml_decode_utf8(resobj->children[ i ]);
+      result.value.wide[ i ] = xml_char_value(resobj->children[ i ]);
     }
   } else {
     result.value.bytes = calloc(1, result.length+1);

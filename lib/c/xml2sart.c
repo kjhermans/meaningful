@@ -40,13 +40,14 @@ int main
   (int argc, char* argv[])
 {
   char* file = argv[ 1 ];
-  char* contents = 0;
+  unsigned char* contents = 0;
   unsigned len = 0;
   xml_t xml = { 0 };
+  (void)argc;
 
   if (file) {
     absorb_file(file, &contents, &len);
-    xml_parse(contents, &xml);
+    xml_parse((char*)contents, &xml);
   }
 
   return 0;

@@ -2,7 +2,7 @@
  some <boo/> text.
  With &nbsp; escapes.
  <a single="element" loose="yes"/>
- And then some
+ And then some 😀 smiley
  <let>
    Me out.
    <with/> a single element.

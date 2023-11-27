@@ -83,12 +83,13 @@ typedef struct
 }
 xml_t;
 
-extern
-void xml_debug
+extern int absorb_file
+  (char* path, unsigned char** buf, unsigned* buflen);
+
+extern void xml_debug
   (xml_t* xml);
 
-extern
-int xml_parse
+extern int xml_parse
   (char* string, xml_t* xml);
 
 #endif
