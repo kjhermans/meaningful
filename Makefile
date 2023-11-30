@@ -16,6 +16,7 @@ c:
 
 clean:
 	rm -f *.toc *.pdf *.out *.log *.aux *.idx *.enc
+	rm -f decoder
 	cd lib/c && make clean
 
 archive: clean

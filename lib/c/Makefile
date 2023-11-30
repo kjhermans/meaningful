@@ -38,5 +38,5 @@ sart2json: sart2json.o
 clean:
 	rm -f sarthaka.o sart2json sart2json.o
 	rm -f xml_bytecode.h xml_slotmap.h xml.asm xml.byc
-	rm -f json_bytecode.h json_slotmap.h json.asm json.byc
+	rm -f json_bytecode.h json_slotmap.h json.asm json.byc json.o
 	rm -f xml2sart xml2sart.o xml_parser.o absorb_file.o xml_lists.o
