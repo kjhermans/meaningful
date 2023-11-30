@@ -1,0 +1,35 @@
+TOP              <- JSON
+
+SPACE            <- %s+
+MULTILINECOMMENT <- '/*' ( !'*/' .)* '*/'
+COMMENT          <- '//' [^\n]* '\n'
+__prefix         <- ( MULTILINECOMMENT / COMMENT / SPACE )*
+END              <- !.
+
+JSON             <- HASH END
+HASH             <- { CBOPEN OPTHASHELTS CBCLOSE }
+OPTHASHELTS      <- HASHELTS ?
+HASHELTS         <- HASHELT ( COMMA HASHELT )*
+HASHELT          <- { STRING COLON VALUE }
+ARRAY            <- { ABOPEN OPTARRAYELTS ABCLOSE }
+OPTARRAYELTS     <- ARRAYELTS ?
+ARRAYELTS        <- VALUE ( COMMA VALUE )*
+VALUE            <- BIGSTRING / STRING / FLOAT / INT / BOOL / NULL / HASH / ARRAY
+BIGSTRING        <- '"""' { ( !'"""' UTF8CHAR )* } '"""'
+STRING           <- '"' { ( '\\' {[nrtv"] / [0-9]^3 } / !'"' UTF8CHAR )* } '"'
+INT              <- { '-'? [0-9]+ }
+FLOAT            <- { '-'? [0-9]* '.' [0-9]+ }
+BOOL             <- { 'true' / 'false' }
+NULL             <- { 'null' }
+CBOPEN           <- '{'
+CBCLOSE          <- '}'
+ABOPEN           <- '['
+ABCLOSE          <- ']'
+COMMA            <- ','
+COLON            <- ':'
+
+UTF8CHAR         <- { ASCII / DOUBLE / TRIPLE / QUADRUPLE }
+ASCII            <- [\000-\177]
+DOUBLE           <- [\300-\337] [\200-\277]
+TRIPLE           <- [\340-\357] [\200-\277] [\200-\277]
+QUADRUPLE        <- [\360-\367] [\200-\277] [\200-\277] [\200-\277]

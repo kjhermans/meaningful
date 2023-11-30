@@ -1,13 +1,28 @@
 CFLAGS=-g -O3 -Wall -Wextra -I.
-all: xmlparser sarthaka.o mains
+all: xmlparser jsonparser sarthaka.o mains
 
-xmlparser: xml.h xml2sart
+xmlparser: json_bytecode.h xml_bytecode.h xml2sart
 
-xml2sart: absorb_file.o xml_parser.o xml2sart.o xml_lists.o
-	$(CC) -o xml2sart xml2sart.o xml_parser.o absorb_file.o xml_lists.o -lnaigama
+jsonparser: jsonlib
 
-xml.h: xml.byc
-	xxd -i xml.byc xml.h
+jsonlib: \
+	json_compound.o \
+	json.o
+
+json_bytecode.h: json.byc
+	xxd -i json.byc json_bytecode.h
+
+json.byc: json.asm
+	naia -i json.asm -o json.byc
+
+json.asm: json.naig
+	naic -i json.naig -o json.asm -M json_slotmap.h
+
+xml2sart: absorb_file.o xml_parser.o xml2sart.o xml_lists.o sarthaka.o
+	$(CC) -o xml2sart xml2sart.o xml_parser.o absorb_file.o xml_lists.o sarthaka.o -lnaigama
+
+xml_bytecode.h: xml.byc
+	xxd -i xml.byc xml_bytecode.h
 
 xml.byc: xml.asm
 	naia -i xml.asm -o xml.byc
@@ -22,5 +37,6 @@ sart2json: sart2json.o
 
 clean:
 	rm -f sarthaka.o sart2json sart2json.o
-	rm -f xml.h xml_slotmap.h xml.asm xml.byc
+	rm -f xml_bytecode.h xml_slotmap.h xml.asm xml.byc
+	rm -f json_bytecode.h json_slotmap.h json.asm json.byc
 	rm -f xml2sart xml2sart.o xml_parser.o absorb_file.o xml_lists.o
