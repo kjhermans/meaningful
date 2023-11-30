@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "xml.h"
+#include "xml_bytecode.h"
 #include "xml_parser.h"
 #include "xml_slotmap.h"
 
@@ -62,27 +62,25 @@ unsigned xml_char_value
     }
   case 14:
     if (resobj->stringlen > 1) {
-      if ((resobj->string[ 0 ] >> 5) == 0x06) {
+      unsigned char* utf8 = (unsigned char*)(resobj->string);
+      if ((utf8[ 0 ] >> 5) == 0x06) {
         return (
-          ((resobj->string[ 0 ] & 0x1f) << 6) |
-          ((resobj->string[ 1 ] & 0x3f))
+          ((utf8[ 0 ] & 0x1f) << 6) |
+          ((utf8[ 1 ] & 0x3f))
         );
-      } else if ((resobj->string[ 0 ] >> 4) == 0x0e) {
+      } else if ((utf8[ 0 ] >> 4) == 0x0e) {
         return (
-          ((resobj->string[ 0 ] & 0x0f) << 12) |
-          ((resobj->string[ 1 ] & 0x3f) << 6) |
-          ((resobj->string[ 2 ] & 0x3f))
+          ((utf8[ 0 ] & 0x0f) << 12) |
+          ((utf8[ 1 ] & 0x3f) << 6) |
+          ((utf8[ 2 ] & 0x3f))
         );
-      } else if ((resobj->string[ 0 ] >> 3) == 0x1e) {
+      } else if ((utf8[ 0 ] >> 3) == 0x1e) {
         return (
-          ((resobj->string[ 0 ] & 0x07) << 18) |
-          ((resobj->string[ 1 ] & 0x3f) << 12) |
-          ((resobj->string[ 2 ] & 0x3f) << 6) |
-          ((resobj->string[ 3 ] & 0x3f))
+          ((utf8[ 0 ] & 0x07) << 18) |
+          ((utf8[ 1 ] & 0x3f) << 12) |
+          ((utf8[ 2 ] & 0x3f) << 6) |
+          ((utf8[ 3 ] & 0x3f))
         );
-      } else {
-unsigned char* foo = resobj->string;
-fprintf(stderr, "NOW WHAT %.2x %.2x %.2x %.2x\n", foo[0], foo[1], foo[2], foo[3]);
       }
     } else {
       return resobj->string[ 0 ];
@@ -100,7 +98,6 @@ xmlstring_t xml_parse_string
   for (unsigned i=0; i < resobj->nchildren; i++) {
     unsigned charval = xml_char_value(resobj->children[ i ]);
     if (charval > 127) {
-fprintf(stderr, "GOT %x\n", charval);
       result.iswide = 1;
     }
   }
@@ -250,7 +247,6 @@ int xml_parse
     return ~0;
   }
   naie_result_free(&result);
-//  naio_result_object_debug(resobj, 0);
   xml_parse_restructure(resobj, xml);
 xml_debug(xml);
   return 0;

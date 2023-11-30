@@ -83,9 +83,6 @@ typedef struct
 }
 xml_t;
 
-extern int absorb_file
-  (char* path, unsigned char** buf, unsigned* buflen);
-
 extern void xml_debug
   (xml_t* xml);
 

@@ -32,6 +32,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "xml_parser.h"
+#include "sarthaka.h"
+
+extern int absorb_file
+  (char* path, unsigned char** buf, unsigned* buflen);
+
+static
+void x2s_writebit
+  (void* arg, unsigned bit)
+{
+}
+
+struct x2stoken
+{
+  unsigned    state;
+#define X2S_ITEM                0
+#define X2S_ATTR                1
+#define X2S_VALUE               2
+
+  itemlist_t  stack;
+  xmlitem_t*  curitem;
+  xmlattr_t*  curattr;
+  unsigned    param[ 2 ];
+};
+
+static
+void x2s_getnexttoken
+  (void* arg, sarthaka_token_t* token)
+{
+  struct x2stoken* t = arg;
+
+  switch (t->state) {
+  case X2S_ITEM:
+  case X2S_ATTR:
+  case X2S_VALUE:
+  }
+}
 
 /**
  *
@@ -48,7 +84,23 @@ int main
   if (file) {
     absorb_file(file, &contents, &len);
     xml_parse((char*)contents, &xml);
+    free(contents);
+  } else {
+    fprintf(stderr, "No file argument given.\n");
+    return -1;
   }
+
+  sarthaka_t s = { 0 };
+  struct x2stoken t = { 0 };
+  xmlitem_t item = { 0 };
+
+  s.writebit     = x2s_writebit;
+  s.writearg     = 0;
+  s.getnexttoken = x2s_getnexttoken;
+  s.tokenizerarg = &t;
+  t.curitem      = &item;
+  item.form.tag  = xml.main;
+  sarthaka_encode(&s);
 
   return 0;
 }
