@@ -6,7 +6,7 @@ COMMENT          <- '//' [^\n]* '\n'
 __prefix         <- ( MULTILINECOMMENT / COMMENT / SPACE )*
 END              <- !.
 
-JSON             <- HASH END
+JSON             <- VALUE END
 HASH             <- { CBOPEN OPTHASHELTS CBCLOSE }
 OPTHASHELTS      <- HASHELTS ?
 HASHELTS         <- HASHELT ( COMMA HASHELT )*
