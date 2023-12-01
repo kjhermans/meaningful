@@ -81,4 +81,12 @@ extern
 int json_string_compare
   (json_string_t* s1, json_string_t* s2);
 
+extern
+json_t* json_parse
+  (char* string);
+
+extern
+void json_debug
+  (json_t* json);
+
 #endif

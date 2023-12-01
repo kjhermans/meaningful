@@ -3,11 +3,14 @@ all: xmlparser jsonparser sarthaka.o mains
 
 xmlparser: json_bytecode.h xml_bytecode.h xml2sart
 
-jsonparser: jsonlib
+jsonparser: jsonlib json2sart
 
 jsonlib: \
 	json_compound.o \
 	json.o
+
+json2sart: json2sart.o
+	$(CC) -o json2sart json2sart.o json.o json_compound.o sarthaka.o -lnaigama
 
 json_bytecode.h: json.byc
 	xxd -i json.byc json_bytecode.h
@@ -38,5 +41,5 @@ sart2json: sart2json.o
 clean:
 	rm -f sarthaka.o sart2json sart2json.o
 	rm -f xml_bytecode.h xml_slotmap.h xml.asm xml.byc
-	rm -f json_bytecode.h json_slotmap.h json.asm json.byc json.o
+	rm -f json2sart json2sart.o json_bytecode.h json_slotmap.h json.asm json.byc json.o json_compound.o
 	rm -f xml2sart xml2sart.o xml_parser.o absorb_file.o xml_lists.o

@@ -68,6 +68,169 @@ int json_string_compare
   }
 }
 
+static
+json_t* json_reconstruct
+  (naio_resobj_t* obj);
+
+static
+unsigned json_charval
+  (naio_resobj_t* resobj)
+{
+  if (resobj->stringlen == 1 && resobj->string[ 0 ] < 128) {
+    return (unsigned)(resobj->string[ 0 ]);
+  } else {
+    if (0 == strcmp(resobj->string, "\\n")) {
+      return (unsigned)'\n';
+    } else if (0 == strcmp(resobj->string, "\\r")) {
+      return (unsigned)'\r';
+    } else if (0 == strcmp(resobj->string, "\\t")) {
+      return (unsigned)'\t';
+    } else if (0 == strcmp(resobj->string, "\\v")) {
+      return (unsigned)'\v';
+    } else if (0 == strcmp(resobj->string, "\\\"")) {
+      return (unsigned)'"';
+    } else {
+//..
+    }
+  }
+  return 0;
+}
+
+static
+json_string_t json_reconstruct_jsonstring
+  (naio_resobj_t* obj)
+{
+  json_string_t result = { 0 };
+
+  for (unsigned i=0; i < obj->nchildren; i++) {
+    unsigned charval = json_charval(obj->children[ i ]);
+    if (charval > 127) {
+      result.wide = 1;
+    }
+  }
+  if (result.wide) {
+    result.value.unicode = calloc(4, obj->nchildren + 1);
+  } else {
+    result.value.bytes = calloc(1, obj->nchildren + 1);
+  }
+  for (unsigned i=0; i < obj->nchildren; i++) {
+    unsigned charval = json_charval(obj->children[ i ]);
+    if (result.wide) {
+      result.value.unicode[ i ] = charval;
+    } else {
+      result.value.bytes[ i ] = charval;
+    }
+  }
+  return result;
+}
+
+static
+json_t* json_reconstruct_hashtable
+  (naio_resobj_t* obj)
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_HASHTABLE;
+  for (unsigned i=0; i < obj->nchildren; i++) {
+    json_string_t key = json_reconstruct_jsonstring(obj->children[ i ]->children[ 0 ]);
+    json_t* value = json_reconstruct(obj->children[ i ]->children[ 1 ]);
+    json_hashtable_put(&(result->value.hashtable), key, value);
+  }
+  return result;
+}
+
+static
+json_t* json_reconstruct_array
+  (naio_resobj_t* obj)
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_ARRAY;
+  for (unsigned i=0; i < obj->nchildren; i++) {
+    json_t* value = json_reconstruct(obj->children[ i ]);
+    json_array_push(&(result->value.array), value);
+  }
+  return result;
+}
+
+static
+json_t* json_reconstruct_string
+  (naio_resobj_t* obj)
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_STRING;
+  result->value.string = json_reconstruct_jsonstring(obj);
+  return result;
+}
+
+static
+json_t* json_reconstruct_int
+  (naio_resobj_t* obj)
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_INTEGER;
+  result->value.boolint = strtol(obj->string, 0, 10);
+  return result;
+}
+
+static
+json_t* json_reconstruct_float
+  (naio_resobj_t* obj)
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_FLOAT;
+  result->value.boolint = strtod(obj->string, 0);
+  return result;
+}
+
+static
+json_t* json_reconstruct_boolean
+  (naio_resobj_t* obj)
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_BOOLEAN;
+  result->value.boolint = (0 == strcmp(obj->string, "true")) ? 1 : 0;
+  return result;
+}
+
+static
+json_t* json_reconstruct_null
+  ()
+{
+  json_t* result = calloc(1, sizeof(json_t));
+
+  result->type = JSON_TYPE_NULL;
+  return result;
+}
+
+static
+json_t* json_reconstruct
+  (naio_resobj_t* obj)
+{
+  switch (obj->type) {
+  case 0: // SLOTMAP_HASH_CBOPENOPTHASHELTSCBCLOSE 
+    return json_reconstruct_hashtable(obj);
+  case 2: // SLOTMAP_ARRAY_ABOPENOPTARRAYELTSABCLOSE
+    return json_reconstruct_array(obj);
+  case 4: // SLOTMAP_STRING_NRTVUTFCHAR
+    return json_reconstruct_string(obj);
+  case 6: // SLOTMAP_INT_
+    return json_reconstruct_int(obj);
+  case 7: // SLOTMAP_FLOAT_
+    return json_reconstruct_float(obj);
+  case 8: // SLOTMAP_BOOL_TRUEFALSE
+    return json_reconstruct_boolean(obj);
+  case 9: // SLOTMAP_NULL_NULL
+    return json_reconstruct_null();
+default: fprintf(stderr, "UNKNOWN TOKEN TYPE %u\n", obj->type);
+  }
+  abort();
+}
+
 json_t* json_parse
   (char* string)
 {
@@ -109,4 +272,12 @@ json_t* json_parse
   naie_result_free(&result);
 
 //..
+naio_resobj_debug(resobj, 0);
+  return json_reconstruct(resobj->children[ 0 ]);
+}
+
+void json_debug
+  (json_t* json)
+{
+  //..
 }
