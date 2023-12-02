@@ -119,6 +119,7 @@ json_string_t json_reconstruct_jsonstring
       result.wide = 1;
     }
   }
+  result.length = obj->nchildren;
   if (result.wide) {
     result.value.unicode = calloc(4, obj->nchildren + 1);
   } else {
