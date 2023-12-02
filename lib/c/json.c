@@ -289,10 +289,59 @@ json_t* json_parse
   return json;
 }
 
+static
+void json_debug_string
+  (json_string_t* str)
+{
+  fprintf(stderr, "\"");
+  if (str->wide) {
+//.. todo
+  } else {
+    fprintf(stderr, "%s", str->value.bytes);
+  }
+  fprintf(stderr, "\"");
 }
 
 void json_debug
   (json_t* json)
 {
-  //..
+  switch (json->type) {
+  case JSON_TYPE_NULL:
+    fprintf(stderr, "null");
+    break;
+  case JSON_TYPE_BOOLEAN:
+    if (json->value.boolint) {
+      fprintf(stderr, "true");
+    } else {
+       fprintf(stderr, "false");
+    }
+    break;
+  case JSON_TYPE_INTEGER:
+    fprintf(stderr, "%" PRId64, json->value.boolint);
+    break;
+  case JSON_TYPE_FLOAT:
+    fprintf(stderr, "%f", json->value.fraction);
+    break;
+  case JSON_TYPE_STRING:
+    json_debug_string(&(json->value.string));
+    break;
+  case JSON_TYPE_ARRAY:
+    fprintf(stderr, "[");
+    for (unsigned i=0; i < json->value.array.count; i++) {
+      if (i) { fprintf(stderr, ","); }
+      json_debug(json->value.array.list[ i ]);
+    }
+    fprintf(stderr, "]");
+    break;
+  case JSON_TYPE_HASHTABLE:
+    fprintf(stderr, "{");
+    for (unsigned i=0; i < json->value.hashtable.count; i++) {
+      if (i) { fprintf(stderr, ","); }
+      json_debug_string(&(json->value.hashtable.keys[ i ]));
+      fprintf(stderr, ":");
+      json_debug(json->value.hashtable.values[ i ]);
+    }
+    fprintf(stderr, "}");
+    break;
+  }
 }
