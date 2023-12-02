@@ -16,7 +16,7 @@ OPTARRAYELTS     <- ARRAYELTS ?
 ARRAYELTS        <- VALUE ( COMMA VALUE )*
 VALUE            <- BIGSTRING / STRING / FLOAT / INT / BOOL / NULL / HASH / ARRAY
 BIGSTRING        <- '"""' { ( !'"""' UTF8CHAR )* } '"""'
-STRING           <- '"' { ( '\\' {[nrtv"] / [0-9]^3 } / !'"' UTF8CHAR )* } '"'
+STRING           <- '"' { ( '\\' { [nrtbf"\\] / 'u' [a-fA-F0-9]^4 } / !'"' UTF8CHAR )* } '"'
 INT              <- { '-'? [0-9]+ }
 FLOAT            <- { '-'? [0-9]* '.' [0-9]+ }
 BOOL             <- { 'true' / 'false' }
