@@ -79,8 +79,10 @@ static
 unsigned json_charval
   (naio_resobj_t* resobj)
 {
-  if (resobj->stringlen == 1 && resobj->string[ 0 ] < 128) {
-    return (unsigned)(resobj->string[ 0 ]);
+  unsigned char* str = (unsigned char*)(resobj->string);
+
+  if (resobj->stringlen == 1 && str[ 0 ] < 128) {
+    return (unsigned)(str[ 0 ]);
   } else {
     if (0 == strcmp(resobj->string, "\\n")) {
       return (unsigned)'\n';
