@@ -194,7 +194,7 @@ json_t* json_reconstruct_float
   json_t* result = calloc(1, sizeof(json_t));
 
   result->type = JSON_TYPE_FLOAT;
-  result->value.boolint = strtod(obj->string, 0);
+  result->value.fraction = strtod(obj->string, 0);
   return result;
 }
 
