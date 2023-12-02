@@ -284,9 +284,11 @@ json_t* json_parse
   }
   naie_result_free(&result);
 
-//..
-naio_resobj_debug(resobj, 0);
-  return json_reconstruct(resobj->children[ 0 ]);
+  json_t* json = json_reconstruct(resobj->children[ 0 ]);
+  naio_result_object_free(resobj);
+  return json;
+}
+
 }
 
 void json_debug
