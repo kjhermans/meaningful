@@ -90,12 +90,18 @@ unsigned json_charval
       return (unsigned)'\r';
     } else if (0 == strcmp(resobj->string, "\\t")) {
       return (unsigned)'\t';
-    } else if (0 == strcmp(resobj->string, "\\v")) {
-      return (unsigned)'\v';
+    } else if (0 == strcmp(resobj->string, "\\b")) {
+      return (unsigned)'\b';
+    } else if (0 == strcmp(resobj->string, "\\f")) {
+      return (unsigned)'\f';
+    } else if (0 == strcmp(resobj->string, "\\/")) {
+      return (unsigned)'/';
     } else if (0 == strcmp(resobj->string, "\\\"")) {
       return (unsigned)'"';
-    } else {
-//..
+    } else if (0 == strcmp(resobj->string, "\\\\")) {
+      return (unsigned)'\\';
+    } else if (resobj->string[ 0 ] == '\\' && resobj->string[ 1 ] == 'u') {
+      //.. four hex characters at string offsets 2,3,4,5
     }
   }
   return 0;
