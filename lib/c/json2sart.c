@@ -76,7 +76,7 @@ int main
     return -1;
   }
 
-  json_debug(json);
+  json_debug(json); fprintf(stderr, "\n");
 
   sarthaka_t s = { 0 };
   struct j2stoken t = { 0 };
@@ -85,7 +85,7 @@ int main
   s.writearg     = 0;
   s.getnexttoken = j2s_getnexttoken;
   s.tokenizerarg = 0;
-  sarthaka_encode(&s);
+//  sarthaka_encode(&s);
 
   return 0;
 }
