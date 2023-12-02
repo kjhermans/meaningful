@@ -238,9 +238,10 @@ json_t* json_reconstruct
     return json_reconstruct_boolean(obj);
   case 9: // SLOTMAP_NULL_NULL
     return json_reconstruct_null();
-default: fprintf(stderr, "UNKNOWN TOKEN TYPE %u\n", obj->type);
+  default:
+    fprintf(stderr, "UNKNOWN TOKEN TYPE %u\n", obj->type);
+    abort();
   }
-  abort();
 }
 
 json_t* json_parse
