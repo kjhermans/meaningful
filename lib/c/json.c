@@ -51,7 +51,7 @@ int json_string_compare
   unsigned smallestlen = (s1->length > s2->length) ? s2->length : s1->length;
 
   if (!(s1->wide) && !(s2->wide)) {
-    return strcmp(s1->value.bytes, s2->value.bytes);
+    return strcmp((char*)(s1->value.bytes), (char*)(s2->value.bytes));
   }
   for (unsigned i=0; i < smallestlen; i++) {
     unsigned c1 = (s1->wide ? s1->value.unicode[ i ] : s1->value.bytes[ i ]);
