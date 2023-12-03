@@ -349,3 +349,33 @@ void json_debug
     break;
   }
 }
+
+void json_free
+  (json_t* json)
+{
+  switch (json->type) {
+  case JSON_TYPE_NULL:
+  case JSON_TYPE_BOOLEAN:
+  case JSON_TYPE_INTEGER:
+  case JSON_TYPE_FLOAT:
+    break;
+  case JSON_TYPE_STRING:
+    free(json->value.string.value.bytes);
+    break;
+  case JSON_TYPE_ARRAY:
+    for (unsigned i=0; i < json->value.array.count; i++) {
+      json_free(json->value.array.list[ i ]);
+    }
+    free(json->value.array.list);
+    break;
+  case JSON_TYPE_HASHTABLE:
+    for (unsigned i=0; i < json->value.hashtable.count; i++) {
+     free(json->value.hashtable.keys[ i ].value.bytes);
+     json_free(json->value.hashtable.values[ i ]);
+    }
+    free(json->value.hashtable.keys);
+    free(json->value.hashtable.values);
+    break;
+  }
+  free(json);
+}

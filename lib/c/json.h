@@ -89,4 +89,8 @@ extern
 void json_debug
   (json_t* json);
 
+extern
+void json_free
+  (json_t* json);
+
 #endif

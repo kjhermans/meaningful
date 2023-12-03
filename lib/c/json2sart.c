@@ -87,5 +87,7 @@ int main
   s.tokenizerarg = 0;
 //  sarthaka_encode(&s);
 
+  json_free(json);
+
   return 0;
 }
