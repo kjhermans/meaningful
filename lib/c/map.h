@@ -34,7 +34,7 @@
   unsigned COMBINE(prefix, size)(COMBINE(prefix, t)* map);                  \
                                                                             \
   extern                                                                    \
-  void COMBINE(prefix, put)(COMBINE(prefix, t)* map, Tk key, Tv val);       \
+  Tv* COMBINE(prefix, put)(COMBINE(prefix, t)* map, Tk key, Tv val);        \
                                                                             \
   extern                                                                    \
   int COMBINE(prefix, get)(COMBINE(prefix, t)* map, Tk key, Tv* val);       \
@@ -75,11 +75,12 @@
     return map->count;                                                      \
   }                                                                         \
                                                                             \
-  void COMBINE(prefix, put)(COMBINE(prefix, t)* map, Tk key, Tv val) {      \
+  Tv* COMBINE(prefix, put)(COMBINE(prefix, t)* map, Tk key, Tv val) {       \
     for (unsigned i=0; i < map->count; i++) {                               \
       if (MAP_EQUALS(map->keys[ i ], key)) {                                \
+        Tv* result = &(map->values[ i ]);                                   \
         map->values[ i ] = val;                                             \
-        return;                                                             \
+        return result;                                                      \
       }                                                                     \
     }                                                                       \
     if (map->count >= map->allocated) {                                     \
@@ -98,6 +99,7 @@
     map->keys[ map->count ] = key;                                          \
     map->values[ map->count ] = val;                                        \
     ++(map->count);                                                         \
+    return NULL;                                                            \
   }                                                                         \
                                                                             \
   int COMBINE(prefix, get)(COMBINE(prefix, t)* map, Tk key, Tv* val) {      \

@@ -146,7 +146,11 @@ json_t* json_reconstruct_hashtable
   for (unsigned i=0; i < obj->nchildren; i++) {
     json_string_t key = json_reconstruct_jsonstring(obj->children[ i ]->children[ 0 ]);
     json_t* value = json_reconstruct(obj->children[ i ]->children[ 1 ]);
-    json_hashtable_put(&(result->value.hashtable), key, value);
+    json_t** replace = json_hashtable_put(&(result->value.hashtable), key, value);
+    if (replace) {
+fprintf(stderr, "REPLACING\n");
+      //.. json_free(*replace); json_free_jsonstring(key);
+    }
   }
   return result;
 }
