@@ -307,9 +307,9 @@ For example:
 \begin{changemargin}{-60mm}{0mm}
 \begin{myquote}
 \begin{verbatim}
-                                 /- 0 null
+                                 /- 0 implicit null
                    /- 0 null ----
-                  /              \- 1 null
+                  /              \- 1 explicit null
      /- 0 scalar -
      |            \              /- 0 fixedlength --- - 00 bool (1)
      |             |             |                    - 01 int32 (32)
@@ -343,7 +343,7 @@ It should be possible to
 create an integer encoding based on continuity bits per 8-bit section.
 It is assumed
 that most integers leave the most relevant parts of their encoding zero.
-This will make integer compression perform better
+In this case, this will make integer compression perform better
 than DER's, and will be more portable across systems.
 For example as follows (assuming a 32 bit signed integer):
 
@@ -353,9 +353,15 @@ For example as follows (assuming a 32 bit signed integer):
       least relevant byte of the quad.
 \item Perform this step a maximum of three more times. Insert the bytes
       from least to most relevant positions in the quad. Note that the
-      last time, only seven bits will be read (because the sign will be
+      last time, there will be no 'non-continuity bit' (because we run
+      out of internal integer representation bits anyway), and the
+      only seven bits will be read (because the sign will be
       part of the 32 bits being transcoded).
 \end{itemize}
+
+Note that the encoding solution above allows for an interpretation of
+'minus zero' by the decoder, which should not be problematic and can be
+made the subject of any convention ('is zero', or 'is INT\_MIN').
 
 %\subsection{Floating Point Number Encoding}
 %

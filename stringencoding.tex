@@ -36,7 +36,8 @@ In pseudo code:
 \end{changemargin}
 
 Note that, in the above code, any positive non null integer can replace
-the '3', while retaining a valid string decoding algorithm.
+the '3', while retaining a valid string decoding algorithm. \textit{Eg} for
+kilobyte blocks, replace '3' with '10'.
 
 \subsubsection{Unicode and UTF-8 Encoding}
 
@@ -45,7 +46,8 @@ which is required for popular outputs such as
 JSON and XML, has invalid byte encoding sequences
 (for example, a 110xxxxx initial byte \textit{not} followed by a
 10xxxxxx byte), it cannot be used as-is against the decoder (which
-should be error free). The following options are considered:
+should be error free against random inputs).
+The following options are considered:
 
 \begin{itemize}
 \item Be oblivious to these types of encodings, which means that JSON and XML
