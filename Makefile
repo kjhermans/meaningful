@@ -14,6 +14,10 @@ c:
 	$(CC) -Wall -Wextra decoder.c -o decoder
 	cd lib/c && make
 
+huffmandict:
+	perl huffmandict.pl AustinFreeman_TheShadowOfTheWolf.txt 1 \
+	  > dict.h
+
 clean:
 	rm -f *.toc *.pdf *.out *.log *.aux *.idx *.enc
 	rm -f decoder
